@@ -29,6 +29,11 @@ button {
   border: 0;
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .app-shell {
   display: grid;
   grid-template-columns: 280px 1fr;
@@ -67,8 +72,10 @@ button {
 .welcome-panel h3,
 .placeholder-page h3,
 .players-header h3,
+.sessions-header h3,
 .form-heading h3,
-.player-details h3 {
+.player-details h3,
+.latest-session-card h3 {
   margin: 0;
 }
 
@@ -140,7 +147,11 @@ button {
   white-space: nowrap;
 }
 
-.page-stack {
+.page-stack,
+.players-page,
+.session-page,
+.session-form,
+.activity-stack {
   display: grid;
   gap: 22px;
 }
@@ -180,7 +191,10 @@ button {
 .placeholder-page,
 .player-list-panel,
 .player-form,
-.player-details {
+.player-details,
+.session-list-panel,
+.session-card,
+.latest-session-card {
   background: #ffffff;
   border: 1px solid #d7e1da;
   border-radius: 8px;
@@ -203,7 +217,9 @@ button {
 .stat-card p,
 .placeholder-page p,
 .welcome-panel p,
-.players-header p {
+.players-header p,
+.sessions-header p,
+.latest-session-card p {
   margin-bottom: 0;
 }
 
@@ -217,7 +233,8 @@ button {
 .quick-actions button,
 .primary-button,
 .secondary-button,
-.danger-button {
+.danger-button,
+.latest-session-card button {
   border-radius: 8px;
   cursor: pointer;
   font-weight: 800;
@@ -225,13 +242,15 @@ button {
 }
 
 .quick-actions button,
-.primary-button {
+.primary-button,
+.latest-session-card button {
   background: #0b2d1d;
   color: #ffffff;
 }
 
 .quick-actions button:hover,
-.primary-button:hover {
+.primary-button:hover,
+.latest-session-card button:hover {
   background: #155636;
 }
 
@@ -261,12 +280,19 @@ button {
   font-size: 2rem;
 }
 
-.players-page {
-  display: grid;
-  gap: 22px;
+.latest-session-card {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
 }
 
-.players-header {
+.latest-session-card h3 {
+  font-size: 1.4rem;
+}
+
+.players-header,
+.sessions-header {
   align-items: flex-start;
   display: flex;
   justify-content: space-between;
@@ -274,12 +300,14 @@ button {
 }
 
 .players-header h3,
+.sessions-header h3,
 .form-heading h3,
 .player-details h3 {
   font-size: 2rem;
 }
 
-.players-layout {
+.players-layout,
+.sessions-layout {
   align-items: start;
   display: grid;
   gap: 18px;
@@ -314,36 +342,55 @@ button {
   margin: 0;
 }
 
-.player-list {
+.player-list,
+.session-list {
   display: grid;
   gap: 10px;
 }
 
-.player-list-item {
-  align-items: center;
+.player-list-item,
+.session-list-item {
   background: #f7fbf8;
   border: 1px solid #d7e1da;
   border-radius: 8px;
   color: #17211b;
   cursor: pointer;
-  display: grid;
-  gap: 12px;
-  grid-template-columns: 54px 1fr;
   padding: 12px;
   text-align: left;
   width: 100%;
 }
 
+.player-list-item {
+  align-items: center;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 54px 1fr;
+}
+
+.session-list-item {
+  display: grid;
+  gap: 4px;
+}
+
 .player-list-item:hover,
-.player-list-item.active {
+.player-list-item.active,
+.session-list-item:hover,
+.session-list-item.active {
   background: #e2eee6;
   border-color: #9fc3ad;
 }
 
-.player-list-item small {
+.player-list-item small,
+.session-list-item small {
   color: #5f7669;
   display: block;
   margin-top: 2px;
+}
+
+.session-list-item span {
+  color: #214530;
+  font-size: 0.85rem;
+  font-weight: 800;
 }
 
 .shirt-number,
@@ -373,7 +420,8 @@ button {
 }
 
 .player-form,
-.player-details {
+.player-details,
+.session-card {
   display: grid;
   gap: 22px;
 }
@@ -395,7 +443,8 @@ button {
 
 .form-grid label,
 .ratings-grid label,
-.notes-grid label {
+.notes-grid label,
+.checkbox-group {
   color: #355543;
   display: grid;
   font-weight: 800;
@@ -449,6 +498,10 @@ textarea:focus {
   gap: 14px;
 }
 
+.two-column-notes {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .detail-item,
 .rating-item,
 .detail-block {
@@ -487,8 +540,62 @@ textarea:focus {
   max-width: none;
 }
 
+.form-message {
+  background: #fff7d6;
+  border: 1px solid #ead36d;
+  border-radius: 8px;
+  color: #604b00;
+  font-weight: 800;
+  margin: 0;
+  padding: 12px 14px;
+}
+
+.checkbox-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.checkbox-pill {
+  align-items: center;
+  background: #f7fbf8;
+  border: 1px solid #d7e1da;
+  border-radius: 999px;
+  color: #214530;
+  cursor: pointer;
+  display: flex;
+  font-weight: 800;
+  gap: 8px;
+  padding: 8px 11px;
+}
+
+.checkbox-pill:has(input:checked) {
+  background: #0b2d1d;
+  border-color: #0b2d1d;
+  color: #ffffff;
+}
+
+.checkbox-pill input {
+  accent-color: #155636;
+  width: auto;
+}
+
+.activity-card {
+  border-left: 5px solid #155636;
+}
+
+.sticky-actions {
+  background: rgba(237, 242, 239, 0.92);
+  bottom: 0;
+  margin: 0 -4px;
+  padding: 12px 4px 0;
+  position: sticky;
+  z-index: 1;
+}
+
 @media (max-width: 980px) {
-  .players-layout {
+  .players-layout,
+  .sessions-layout {
     grid-template-columns: 1fr;
   }
 
@@ -522,7 +629,8 @@ textarea:focus {
   .form-grid,
   .ratings-grid,
   .details-grid,
-  .rating-summary {
+  .rating-summary,
+  .two-column-notes {
     grid-template-columns: 1fr;
   }
 }
@@ -530,8 +638,10 @@ textarea:focus {
 @media (max-width: 560px) {
   .topbar,
   .players-header,
+  .sessions-header,
   .form-heading,
-  .details-header {
+  .details-header,
+  .latest-session-card {
     align-items: flex-start;
     flex-direction: column;
   }
@@ -546,7 +656,9 @@ textarea:focus {
   }
 
   .players-header .primary-button,
-  .form-actions button {
+  .sessions-header .primary-button,
+  .form-actions button,
+  .latest-session-card button {
     width: 100%;
   }
 }
