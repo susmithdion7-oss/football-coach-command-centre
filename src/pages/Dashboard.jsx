@@ -1,4 +1,13 @@
-function Dashboard({ latestSession, onNavigate, playerCount, sessionCount }) {
+function Dashboard({
+  nextSession,
+  onNavigate,
+  playerCount,
+  recentPastSession,
+  sessionCount,
+  upcomingSessions,
+}) {
+  const hasUpcomingSessions = upcomingSessions.length > 0
+
   return (
     <section className="page-stack">
       <div className="welcome-panel">
@@ -30,21 +39,52 @@ function Dashboard({ latestSession, onNavigate, playerCount, sessionCount }) {
         </article>
       </div>
 
-      {latestSession && (
-        <article className="latest-session-card">
+      <section className="dashboard-sessions-card">
+        <div className="dashboard-sessions-header">
           <div>
-            <p className="section-kicker">Latest saved session</p>
-            <h3>{latestSession.sessionTitle}</h3>
-            <p>
-              {latestSession.date || 'No date set'} - {latestSession.primaryTopic || 'No topic set'} -{' '}
-              {latestSession.status || 'Draft'}
+            <p className="section-kicker">
+              {nextSession ? 'Next session' : 'Session schedule'}
             </p>
+            {nextSession ? (
+              <>
+                <h3>{nextSession.sessionTitle}</h3>
+                <p>
+                  {nextSession.date} - {nextSession.primaryTopic || 'No topic set'} -{' '}
+                  {nextSession.status || 'Draft'}
+                </p>
+              </>
+            ) : (
+              <>
+                <h3>No upcoming sessions planned.</h3>
+                {recentPastSession && (
+                  <p>
+                    Most recent session: {recentPastSession.sessionTitle} -{' '}
+                    {recentPastSession.date}
+                  </p>
+                )}
+              </>
+            )}
           </div>
           <button type="button" onClick={() => onNavigate('sessions')}>
             Open Session Planner
           </button>
-        </article>
-      )}
+        </div>
+
+        {hasUpcomingSessions && (
+          <div className="upcoming-session-list">
+            <span>Upcoming sessions</span>
+            {upcomingSessions.map((session) => (
+              <div className="upcoming-session-item" key={session.id}>
+                <strong>{session.date}</strong>
+                <div>
+                  <p>{session.sessionTitle}</p>
+                  <small>{session.primaryTopic || 'No topic set'}</small>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       <div className="quick-actions">
         <button type="button" onClick={() => onNavigate('players')}>
