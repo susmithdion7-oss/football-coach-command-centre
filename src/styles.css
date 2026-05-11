@@ -75,7 +75,8 @@ button:disabled {
 .sessions-header h3,
 .form-heading h3,
 .player-details h3,
-.latest-session-card h3 {
+.latest-session-card h3,
+.dashboard-sessions-card h3 {
   margin: 0;
 }
 
@@ -194,7 +195,8 @@ button:disabled {
 .player-details,
 .session-list-panel,
 .session-card,
-.latest-session-card {
+.latest-session-card,
+.dashboard-sessions-card {
   background: #ffffff;
   border: 1px solid #d7e1da;
   border-radius: 8px;
@@ -219,7 +221,8 @@ button:disabled {
 .welcome-panel p,
 .players-header p,
 .sessions-header p,
-.latest-session-card p {
+.latest-session-card p,
+.dashboard-sessions-card p {
   margin-bottom: 0;
 }
 
@@ -234,7 +237,8 @@ button:disabled {
 .primary-button,
 .secondary-button,
 .danger-button,
-.latest-session-card button {
+.latest-session-card button,
+.dashboard-sessions-card button {
   border-radius: 8px;
   cursor: pointer;
   font-weight: 800;
@@ -243,14 +247,16 @@ button:disabled {
 
 .quick-actions button,
 .primary-button,
-.latest-session-card button {
+.latest-session-card button,
+.dashboard-sessions-card button {
   background: #0b2d1d;
   color: #ffffff;
 }
 
 .quick-actions button:hover,
 .primary-button:hover,
-.latest-session-card button:hover {
+.latest-session-card button:hover,
+.dashboard-sessions-card button:hover {
   background: #155636;
 }
 
@@ -280,15 +286,58 @@ button:disabled {
   font-size: 2rem;
 }
 
-.latest-session-card {
+.latest-session-card,
+.dashboard-sessions-header {
   align-items: center;
   display: flex;
   justify-content: space-between;
   gap: 18px;
 }
 
-.latest-session-card h3 {
+.latest-session-card h3,
+.dashboard-sessions-card h3 {
   font-size: 1.4rem;
+}
+
+.dashboard-sessions-card {
+  display: grid;
+  gap: 18px;
+}
+
+.upcoming-session-list {
+  border-top: 1px solid #d7e1da;
+  display: grid;
+  gap: 10px;
+  padding-top: 16px;
+}
+
+.upcoming-session-list > span {
+  color: #5f7669;
+  font-weight: 800;
+}
+
+.upcoming-session-item {
+  align-items: center;
+  background: #f7fbf8;
+  border: 1px solid #d7e1da;
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 120px 1fr;
+  padding: 12px;
+}
+
+.upcoming-session-item strong {
+  color: #214530;
+}
+
+.upcoming-session-item p {
+  font-weight: 800;
+  margin: 0;
+}
+
+.upcoming-session-item small {
+  color: #5f7669;
 }
 
 .players-header,
@@ -641,7 +690,8 @@ textarea:focus {
   .sessions-header,
   .form-heading,
   .details-header,
-  .latest-session-card {
+  .latest-session-card,
+  .dashboard-sessions-header {
     align-items: flex-start;
     flex-direction: column;
   }
@@ -655,10 +705,15 @@ textarea:focus {
     padding: 24px;
   }
 
+  .upcoming-session-item {
+    grid-template-columns: 1fr;
+  }
+
   .players-header .primary-button,
   .sessions-header .primary-button,
   .form-actions button,
-  .latest-session-card button {
+  .latest-session-card button,
+  .dashboard-sessions-card button {
     width: 100%;
   }
 }

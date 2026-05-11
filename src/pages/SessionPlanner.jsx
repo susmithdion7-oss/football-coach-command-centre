@@ -140,6 +140,47 @@ const emptySession = {
   activities: activityTemplates.map(createEmptyActivity),
 }
 
+function parseSessionDate(session) {
+  if (!session.date) {
+    return null
+  }
+
+  const date = new Date(`${session.date}T00:00:00`)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+function sortSessionsByDate(sessions) {
+  return [...sessions].sort((firstSession, secondSession) => {
+    const firstDate = parseSessionDate(firstSession)
+    const secondDate = parseSessionDate(secondSession)
+
+    if (firstDate && secondDate) {
+      const dateDifference = firstDate - secondDate
+
+      if (dateDifference !== 0) {
+        return dateDifference
+      }
+    }
+
+    if (firstDate && !secondDate) {
+      return -1
+    }
+
+    if (!firstDate && secondDate) {
+      return 1
+    }
+
+    const firstCreatedAt = new Date(firstSession.createdAt || 0).getTime()
+    const secondCreatedAt = new Date(secondSession.createdAt || 0).getTime()
+
+    if (firstCreatedAt !== secondCreatedAt) {
+      return firstCreatedAt - secondCreatedAt
+    }
+
+    return (firstSession.sessionTitle || '').localeCompare(secondSession.sessionTitle || '')
+  })
+}
+
 function SessionPlanner({
   onAddSession,
   onDeleteSession,
@@ -150,6 +191,7 @@ function SessionPlanner({
   const [selectedSessionId, setSelectedSessionId] = useState(sessions[0]?.id ?? null)
   const [formData, setFormData] = useState(emptySession)
   const [message, setMessage] = useState('')
+  const sortedSessions = useMemo(() => sortSessionsByDate(sessions), [sessions])
 
   const selectedSession = useMemo(
     () => sessions.find((session) => session.id === selectedSessionId),
@@ -271,7 +313,7 @@ function SessionPlanner({
     }
 
     onDeleteSession(selectedSession.id)
-    const nextSession = sessions.find((session) => session.id !== selectedSession.id)
+    const nextSession = sortedSessions.find((session) => session.id !== selectedSession.id)
     setSelectedSessionId(nextSession?.id ?? null)
     setFormData(nextSession ? getSessionForForm(nextSession) : emptySession)
     setMessage(nextSession ? 'Session deleted.' : 'Session deleted. New session form ready.')
@@ -322,7 +364,7 @@ function SessionPlanner({
             <p className="empty-message">No sessions saved yet.</p>
           ) : (
             <div className="session-list">
-              {sessions.map((session) => (
+              {sortedSessions.map((session) => (
                 <button
                   className={
                     session.id === selectedSessionId
