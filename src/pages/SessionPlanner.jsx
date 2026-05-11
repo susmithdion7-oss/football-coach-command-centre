@@ -186,6 +186,7 @@ function sortSessionsByDate(sessions) {
 
 function SessionPlanner({
   onAddSession,
+  onCopyDiagramToBoard,
   onDeleteSession,
   onDuplicateSession,
   onUpdateSession,
@@ -561,6 +562,8 @@ function SessionPlanner({
                 index={index}
                 key={activityTemplates[index]}
                 onChange={updateActivity}
+                onCopyDiagramToBoard={onCopyDiagramToBoard}
+                sessionTitle={formData.sessionTitle}
               />
             ))}
           </div>
@@ -629,7 +632,7 @@ function CheckboxGroup({ fieldName, options, selectedValues, title, onToggle }) 
   )
 }
 
-function ActivitySection({ activity, index, onChange }) {
+function ActivitySection({ activity, index, onChange, onCopyDiagramToBoard, sessionTitle }) {
   const [isEditingDiagram, setIsEditingDiagram] = useState(false)
   const diagram = normaliseDiagram(activity.diagram, `${activity.name} diagram`)
   const hasDiagram = diagram.objects.length > 0
@@ -638,6 +641,14 @@ function ActivitySection({ activity, index, onChange }) {
   function saveActivityDiagram(nextDiagram) {
     onChange(index, 'diagram', nextDiagram)
     setIsEditingDiagram(false)
+  }
+
+  function copyToTacticalBoard() {
+    if (!onCopyDiagramToBoard || !hasDiagram) {
+      return
+    }
+
+    onCopyDiagramToBoard({ activity, diagram, sessionTitle })
   }
 
   return (
@@ -743,13 +754,20 @@ function ActivitySection({ activity, index, onChange }) {
             <h4>{hasDiagram ? diagram.title : 'No diagram added yet.'}</h4>
             <p>Create a visual setup for this activity. The diagram is saved with this session activity.</p>
           </div>
-          <button
-            className="secondary-button"
-            type="button"
-            onClick={() => setIsEditingDiagram(true)}
-          >
-            Edit Diagram
-          </button>
+          <div className="activity-diagram-actions">
+            {hasDiagram && (
+              <button className="secondary-button" type="button" onClick={copyToTacticalBoard}>
+                Copy to Tactical Board
+              </button>
+            )}
+            <button
+              className="secondary-button"
+              type="button"
+              onClick={() => setIsEditingDiagram(true)}
+            >
+              Edit Diagram
+            </button>
+          </div>
         </div>
 
         <DiagramPreview diagram={diagram} />

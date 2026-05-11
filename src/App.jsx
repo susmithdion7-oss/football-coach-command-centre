@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { normaliseDiagram } from './components/DiagramPreview.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Players from './pages/Players.jsx'
 import SessionPlanner from './pages/SessionPlanner.jsx'
@@ -18,6 +19,10 @@ function createRecordId(prefix) {
   }
 
   return `${prefix}-${Date.now()}`
+}
+
+function deepCopy(value) {
+  return JSON.parse(JSON.stringify(value))
 }
 
 function parseSessionDate(session) {
@@ -86,12 +91,43 @@ function getDashboardSessionSummary(sessions) {
   }
 }
 
+function buildCopiedBoardNotes(activity, diagramNotes) {
+  const noteSections = []
+
+  if (diagramNotes) {
+    noteSections.push(diagramNotes)
+  }
+
+  if (activity.setup) {
+    noteSections.push(`Setup: ${activity.setup}`)
+  }
+
+  if (activity.rules) {
+    noteSections.push(`Rules / organisation: ${activity.rules}`)
+  }
+
+  if (activity.coachingPoints) {
+    noteSections.push(`Coaching points: ${activity.coachingPoints}`)
+  }
+
+  if (activity.coachNotes) {
+    noteSections.push(`Coach notes: ${activity.coachNotes}`)
+  }
+
+  return noteSections.join('\n\n')
+}
+
 function App() {
   const [activePage, setActivePage] = useState('dashboard')
   const [players, setPlayers] = useState(() => getStorageItem('players', []))
   const [sessions, setSessions] = useState(() =>
     getStorageItem('footballCoachSessions', []),
   )
+  const [tacticalBoards, setTacticalBoards] = useState(() =>
+    getStorageItem('tacticalBoards', []),
+  )
+  const [activeTacticalBoardId, setActiveTacticalBoardId] = useState(null)
+  const [tacticalBoardNotice, setTacticalBoardNotice] = useState('')
 
   useEffect(() => {
     setStorageItem('players', players)
@@ -100,6 +136,10 @@ function App() {
   useEffect(() => {
     setStorageItem('footballCoachSessions', sessions)
   }, [sessions])
+
+  useEffect(() => {
+    setStorageItem('tacticalBoards', tacticalBoards)
+  }, [tacticalBoards])
 
   const pageTitle = pages.find((page) => page.id === activePage)?.label
   const { nextSession, recentPastSession, upcomingSessions } =
@@ -178,6 +218,93 @@ function App() {
     return copiedSession.id
   }
 
+  function addTacticalBoard(board) {
+    const now = new Date().toISOString()
+    const newBoard = {
+      ...board,
+      id: createRecordId('board'),
+      title: board.title.trim(),
+      boardType: board.boardType || 'Training drill',
+      pitchLayout: board.pitchLayout || 'fullPitch',
+      notes: board.notes || '',
+      objects: Array.isArray(board.objects) ? deepCopy(board.objects) : [],
+      createdAt: board.createdAt || now,
+      updatedAt: now,
+    }
+
+    setTacticalBoards((currentBoards) => [...currentBoards, newBoard])
+    setActiveTacticalBoardId(newBoard.id)
+    return newBoard.id
+  }
+
+  function updateTacticalBoard(boardId, updatedBoard) {
+    setTacticalBoards((currentBoards) =>
+      currentBoards.map((board) =>
+        board.id === boardId
+          ? {
+              ...board,
+              ...updatedBoard,
+              title: updatedBoard.title.trim(),
+              objects: Array.isArray(updatedBoard.objects) ? deepCopy(updatedBoard.objects) : [],
+              updatedAt: new Date().toISOString(),
+            }
+          : board,
+      ),
+    )
+    setActiveTacticalBoardId(boardId)
+  }
+
+  function deleteTacticalBoard(boardId) {
+    setTacticalBoards((currentBoards) => currentBoards.filter((board) => board.id !== boardId))
+
+    if (activeTacticalBoardId === boardId) {
+      setActiveTacticalBoardId(null)
+    }
+  }
+
+  function duplicateTacticalBoard(boardId) {
+    const boardToCopy = tacticalBoards.find((board) => board.id === boardId)
+
+    if (!boardToCopy) {
+      return null
+    }
+
+    const now = new Date().toISOString()
+    const copiedBoard = {
+      ...boardToCopy,
+      id: createRecordId('board'),
+      title: `${boardToCopy.title} copy`,
+      objects: deepCopy(boardToCopy.objects || []),
+      createdAt: now,
+      updatedAt: now,
+    }
+
+    setTacticalBoards((currentBoards) => [...currentBoards, copiedBoard])
+    setActiveTacticalBoardId(copiedBoard.id)
+    return copiedBoard.id
+  }
+
+  function copyActivityDiagramToTacticalBoard({ activity, diagram, sessionTitle }) {
+    const safeDiagram = normaliseDiagram(diagram, `${activity.name} diagram`)
+
+    if (safeDiagram.objects.length === 0) {
+      return null
+    }
+
+    const titleParts = [sessionTitle || 'Session', activity.name || 'Activity']
+    const copiedBoardId = addTacticalBoard({
+      title: titleParts.join(' - '),
+      boardType: 'Training drill',
+      pitchLayout: safeDiagram.pitchLayout,
+      notes: buildCopiedBoardNotes(activity, safeDiagram.notes),
+      objects: deepCopy(safeDiagram.objects),
+    })
+
+    setTacticalBoardNotice('Copied to Tactical Board.')
+    setActivePage('tactics')
+    return copiedBoardId
+  }
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -219,6 +346,7 @@ function App() {
             playerCount={players.length}
             recentPastSession={recentPastSession}
             sessionCount={sessions.length}
+            tacticalBoardCount={tacticalBoards.length}
             upcomingSessions={upcomingSessions}
           />
         )}
@@ -233,13 +361,26 @@ function App() {
         {activePage === 'sessions' && (
           <SessionPlanner
             onAddSession={addSession}
+            onCopyDiagramToBoard={copyActivityDiagramToTacticalBoard}
             onDeleteSession={deleteSession}
             onDuplicateSession={duplicateSession}
             onUpdateSession={updateSession}
             sessions={sessions}
           />
         )}
-        {activePage === 'tactics' && <TacticalBoard />}
+        {activePage === 'tactics' && (
+          <TacticalBoard
+            activeBoardId={activeTacticalBoardId}
+            boards={tacticalBoards}
+            notice={tacticalBoardNotice}
+            onAddBoard={addTacticalBoard}
+            onClearNotice={() => setTacticalBoardNotice('')}
+            onDeleteBoard={deleteTacticalBoard}
+            onDuplicateBoard={duplicateTacticalBoard}
+            onSelectBoard={setActiveTacticalBoardId}
+            onUpdateBoard={updateTacticalBoard}
+          />
+        )}
       </main>
     </div>
   )
