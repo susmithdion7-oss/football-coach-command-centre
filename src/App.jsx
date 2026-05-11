@@ -20,12 +20,70 @@ function createRecordId(prefix) {
   return `${prefix}-${Date.now()}`
 }
 
-function getLatestSession(sessions) {
-  return [...sessions].sort(
-    (firstSession, secondSession) =>
-      new Date(secondSession.updatedAt || secondSession.createdAt || 0) -
-      new Date(firstSession.updatedAt || firstSession.createdAt || 0),
-  )[0]
+function parseSessionDate(session) {
+  if (!session.date) {
+    return null
+  }
+
+  const date = new Date(`${session.date}T00:00:00`)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+
+function getTodayDate() {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return today
+}
+
+function sortSessionsByDate(sessions) {
+  return [...sessions].sort((firstSession, secondSession) => {
+    const firstDate = parseSessionDate(firstSession)
+    const secondDate = parseSessionDate(secondSession)
+
+    if (firstDate && secondDate) {
+      const dateDifference = firstDate - secondDate
+
+      if (dateDifference !== 0) {
+        return dateDifference
+      }
+    }
+
+    if (firstDate && !secondDate) {
+      return -1
+    }
+
+    if (!firstDate && secondDate) {
+      return 1
+    }
+
+    const firstCreatedAt = new Date(firstSession.createdAt || 0).getTime()
+    const secondCreatedAt = new Date(secondSession.createdAt || 0).getTime()
+
+    if (firstCreatedAt !== secondCreatedAt) {
+      return firstCreatedAt - secondCreatedAt
+    }
+
+    return (firstSession.sessionTitle || '').localeCompare(secondSession.sessionTitle || '')
+  })
+}
+
+function getDashboardSessionSummary(sessions) {
+  const today = getTodayDate()
+  const datedSessions = sortSessionsByDate(sessions).filter((session) =>
+    parseSessionDate(session),
+  )
+  const upcomingSessions = datedSessions
+    .filter((session) => parseSessionDate(session) >= today)
+    .slice(0, 3)
+  const recentPastSession = [...datedSessions]
+    .reverse()
+    .find((session) => parseSessionDate(session) < today)
+
+  return {
+    nextSession: upcomingSessions[0],
+    recentPastSession,
+    upcomingSessions,
+  }
 }
 
 function App() {
@@ -44,7 +102,8 @@ function App() {
   }, [sessions])
 
   const pageTitle = pages.find((page) => page.id === activePage)?.label
-  const latestSession = getLatestSession(sessions)
+  const { nextSession, recentPastSession, upcomingSessions } =
+    getDashboardSessionSummary(sessions)
 
   function addPlayer(player) {
     const newPlayer = {
@@ -155,10 +214,12 @@ function App() {
 
         {activePage === 'dashboard' && (
           <Dashboard
-            latestSession={latestSession}
+            nextSession={nextSession}
             onNavigate={setActivePage}
             playerCount={players.length}
+            recentPastSession={recentPastSession}
             sessionCount={sessions.length}
+            upcomingSessions={upcomingSessions}
           />
         )}
         {activePage === 'players' && (
