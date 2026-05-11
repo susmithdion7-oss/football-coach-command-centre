@@ -266,17 +266,35 @@ function ConeMarker({ object, selected }) {
 function MiniGoalMarker({ object, selected }) {
   const size = object.size || 11
   const width = size
-  const height = size * 0.5
+  const height = size * 0.46
+  const depth = size * 0.34
+  const postInset = width * 0.22
 
   return (
     <g
       className={`diagram-object diagram-mini-goal${selected ? ' selected' : ''}`}
       transform={`translate(${object.x} ${object.y}) rotate(${object.rotation || 0})`}
     >
-      <path d={`M ${-width / 2} ${height / 2} V ${-height / 2} H ${width / 2} V ${height / 2}`} />
-      <line x1={-width / 2} x2={width / 2} y1={height / 2} y2={height / 2} />
-      <line x1={-width / 4} x2={-width / 4} y1={-height / 2} y2={height / 2} />
-      <line x1={width / 4} x2={width / 4} y1={-height / 2} y2={height / 2} />
+      <path
+        className="diagram-mini-goal-net-fill"
+        d={`M ${-width / 2} ${-height / 2} H ${width / 2} L ${width / 2 - postInset} ${height / 2 + depth} H ${-width / 2 + postInset} Z`}
+      />
+      <path
+        className="diagram-mini-goal-net-line"
+        d={`M ${-width / 2 + postInset} ${height / 2 + depth} L ${-width / 2} ${-height / 2} M ${0} ${height / 2 + depth} L ${0} ${-height / 2} M ${width / 2 - postInset} ${height / 2 + depth} L ${width / 2} ${-height / 2}`}
+      />
+      <path
+        className="diagram-mini-goal-net-line"
+        d={`M ${-width / 2 + postInset * 0.6} ${height / 2 + depth * 0.35} H ${width / 2 - postInset * 0.6} M ${-width / 2 + postInset} ${height / 2 + depth * 0.7} H ${width / 2 - postInset}`}
+      />
+      <path
+        className="diagram-mini-goal-frame"
+        d={`M ${-width / 2} ${height / 2} V ${-height / 2} H ${width / 2} V ${height / 2}`}
+      />
+      <line className="diagram-mini-goal-frame" x1={-width / 2} x2={width / 2} y1={height / 2} y2={height / 2} />
+      <line className="diagram-mini-goal-frame" x1={-width / 2 + postInset} x2={width / 2 - postInset} y1={height / 2 + depth} y2={height / 2 + depth} />
+      <line className="diagram-mini-goal-side" x1={-width / 2} x2={-width / 2 + postInset} y1={height / 2} y2={height / 2 + depth} />
+      <line className="diagram-mini-goal-side" x1={width / 2} x2={width / 2 - postInset} y1={height / 2} y2={height / 2 + depth} />
     </g>
   )
 }
