@@ -12,28 +12,44 @@ const pages = [
   { id: 'tactics', label: 'Tactical Board' },
 ]
 
-function createPlayerId() {
+function createRecordId(prefix) {
   if (window.crypto?.randomUUID) {
     return window.crypto.randomUUID()
   }
 
-  return `player-${Date.now()}`
+  return `${prefix}-${Date.now()}`
+}
+
+function getLatestSession(sessions) {
+  return [...sessions].sort(
+    (firstSession, secondSession) =>
+      new Date(secondSession.updatedAt || secondSession.createdAt || 0) -
+      new Date(firstSession.updatedAt || firstSession.createdAt || 0),
+  )[0]
 }
 
 function App() {
   const [activePage, setActivePage] = useState('dashboard')
   const [players, setPlayers] = useState(() => getStorageItem('players', []))
+  const [sessions, setSessions] = useState(() =>
+    getStorageItem('footballCoachSessions', []),
+  )
 
   useEffect(() => {
     setStorageItem('players', players)
   }, [players])
 
+  useEffect(() => {
+    setStorageItem('footballCoachSessions', sessions)
+  }, [sessions])
+
   const pageTitle = pages.find((page) => page.id === activePage)?.label
+  const latestSession = getLatestSession(sessions)
 
   function addPlayer(player) {
     const newPlayer = {
       ...player,
-      id: createPlayerId(),
+      id: createRecordId('player'),
       createdAt: new Date().toISOString(),
     }
 
@@ -53,6 +69,54 @@ function App() {
     setPlayers((currentPlayers) =>
       currentPlayers.filter((player) => player.id !== playerId),
     )
+  }
+
+  function addSession(session) {
+    const newSession = {
+      ...session,
+      id: createRecordId('session'),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    setSessions((currentSessions) => [...currentSessions, newSession])
+    return newSession.id
+  }
+
+  function updateSession(sessionId, updatedSession) {
+    setSessions((currentSessions) =>
+      currentSessions.map((session) =>
+        session.id === sessionId
+          ? { ...session, ...updatedSession, updatedAt: new Date().toISOString() }
+          : session,
+      ),
+    )
+  }
+
+  function deleteSession(sessionId) {
+    setSessions((currentSessions) =>
+      currentSessions.filter((session) => session.id !== sessionId),
+    )
+  }
+
+  function duplicateSession(sessionId) {
+    const sessionToCopy = sessions.find((session) => session.id === sessionId)
+
+    if (!sessionToCopy) {
+      return null
+    }
+
+    const copiedSession = {
+      ...sessionToCopy,
+      id: createRecordId('session'),
+      sessionTitle: `${sessionToCopy.sessionTitle} copy`,
+      status: 'Draft',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    setSessions((currentSessions) => [...currentSessions, copiedSession])
+    return copiedSession.id
   }
 
   return (
@@ -90,7 +154,12 @@ function App() {
         </header>
 
         {activePage === 'dashboard' && (
-          <Dashboard onNavigate={setActivePage} playerCount={players.length} />
+          <Dashboard
+            latestSession={latestSession}
+            onNavigate={setActivePage}
+            playerCount={players.length}
+            sessionCount={sessions.length}
+          />
         )}
         {activePage === 'players' && (
           <Players
@@ -100,7 +169,15 @@ function App() {
             onUpdatePlayer={updatePlayer}
           />
         )}
-        {activePage === 'sessions' && <SessionPlanner />}
+        {activePage === 'sessions' && (
+          <SessionPlanner
+            onAddSession={addSession}
+            onDeleteSession={deleteSession}
+            onDuplicateSession={duplicateSession}
+            onUpdateSession={updateSession}
+            sessions={sessions}
+          />
+        )}
         {activePage === 'tactics' && <TacticalBoard />}
       </main>
     </div>
