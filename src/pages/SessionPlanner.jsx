@@ -633,6 +633,7 @@ function ActivitySection({ activity, index, onChange }) {
   const [isEditingDiagram, setIsEditingDiagram] = useState(false)
   const diagram = normaliseDiagram(activity.diagram, `${activity.name} diagram`)
   const hasDiagram = diagram.objects.length > 0
+  const diagramNotes = diagram.notes.trim()
 
   function saveActivityDiagram(nextDiagram) {
     onChange(index, 'diagram', nextDiagram)
@@ -752,6 +753,13 @@ function ActivitySection({ activity, index, onChange }) {
         </div>
 
         <DiagramPreview diagram={diagram} />
+
+        {diagramNotes && (
+          <div className="diagram-notes-preview">
+            <span>Diagram notes</span>
+            <p>{diagramNotes}</p>
+          </div>
+        )}
 
         {isEditingDiagram && (
           <DiagramEditor
