@@ -335,7 +335,7 @@ function SessionPlanner({
                 >
                   <strong>{session.sessionTitle}</strong>
                   <small>
-                    {session.date || 'No date'} · {session.primaryTopic || 'No topic'}
+                    {session.date || 'No date'} - {session.primaryTopic || 'No topic'}
                   </small>
                   <span>{session.status || 'Draft'}</span>
                 </button>
