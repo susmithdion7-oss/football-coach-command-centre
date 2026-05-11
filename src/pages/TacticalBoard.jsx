@@ -178,18 +178,17 @@ function normaliseBoard(board, index = 0) {
   }
 }
 
+function getBoardSortTime(board) {
+  const time = new Date(board.updatedAt || board.createdAt || 0).getTime()
+  return Number.isNaN(time) ? 0 : time
+}
+
 function sortBoardsByUpdatedAt(boards) {
   return boards
-    .map(normaliseBoard)
+    .map((board, index) => ({ ...normaliseBoard(board, index), listIndex: index }))
     .sort((firstBoard, secondBoard) => {
-      const firstTime = new Date(firstBoard.updatedAt || firstBoard.createdAt || 0).getTime()
-      const secondTime = new Date(secondBoard.updatedAt || secondBoard.createdAt || 0).getTime()
-
-      if (firstTime !== secondTime) {
-        return secondTime - firstTime
-      }
-
-      return 0
+      const timeDifference = getBoardSortTime(secondBoard) - getBoardSortTime(firstBoard)
+      return timeDifference || firstBoard.listIndex - secondBoard.listIndex
     })
 }
 
@@ -209,7 +208,9 @@ function formatBoardDate(value) {
 function TacticalBoard({
   activeBoardId,
   boards,
+  notice,
   onAddBoard,
+  onClearNotice,
   onDeleteBoard,
   onDuplicateBoard,
   onSelectBoard,
@@ -239,6 +240,15 @@ function TacticalBoard({
       setSelectedObjectId(null)
     }
   }, [activeBoardId, boards])
+
+  useEffect(() => {
+    if (!notice) {
+      return
+    }
+
+    setMessage(notice)
+    onClearNotice()
+  }, [notice, onClearNotice])
 
   const safeDiagram = normaliseDiagram(
     {
