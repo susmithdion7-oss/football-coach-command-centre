@@ -1,4 +1,4 @@
-function Dashboard({ onNavigate }) {
+function Dashboard({ onNavigate, playerCount }) {
   return (
     <section className="page-stack">
       <div className="welcome-panel">
@@ -15,8 +15,8 @@ function Dashboard({ onNavigate }) {
       <div className="stats-grid" aria-label="Dashboard summary">
         <article className="stat-card">
           <span>Total players</span>
-          <strong>0</strong>
-          <p>Player profiles will be added in the next task.</p>
+          <strong>{playerCount}</strong>
+          <p>Saved locally in this browser.</p>
         </article>
         <article className="stat-card">
           <span>Saved sessions</span>
