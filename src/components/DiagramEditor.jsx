@@ -351,6 +351,13 @@ function DiagramEditor({ activityName, diagram, onCancel, onSave }) {
     }))
   }
 
+  function rotateMiniGoal(degrees) {
+    updateSelectedObject((object) => ({
+      ...object,
+      rotation: (((object.rotation || 0) + degrees) % 360 + 360) % 360,
+    }))
+  }
+
   function changePlayerNumber(event) {
     const number = event.target.value
 
@@ -401,110 +408,119 @@ function DiagramEditor({ activityName, diagram, onCancel, onSave }) {
         </div>
       </div>
 
-      <label className="diagram-layout-field">
-        Pitch layout
-        <select value={workingDiagram.pitchLayout} onChange={updatePitchLayout}>
-          {pitchLayouts.map((layout) => (
-            <option key={layout.value} value={layout.value}>
-              {layout.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="diagram-editor-toolbar">
+        <label className="diagram-layout-field">
+          Pitch layout
+          <select value={workingDiagram.pitchLayout} onChange={updatePitchLayout}>
+            {pitchLayouts.map((layout) => (
+              <option key={layout.value} value={layout.value}>
+                {layout.label}
+              </option>
+            ))}
+          </select>
+        </label>
 
-      <div className="diagram-toolbar">
-        <button type="button" onClick={() => addObject('homePlayer')}>
-          Add Home Player
-        </button>
-        <button type="button" onClick={() => addObject('awayPlayer')}>
-          Add Away Player
-        </button>
-        <button type="button" onClick={() => addObject('neutralPlayer')}>
-          Add Neutral Player
-        </button>
-        <button type="button" onClick={() => addObject('ball')}>
-          Add Ball
-        </button>
-        <button type="button" onClick={() => addObject('cone')}>
-          Add Cone
-        </button>
-        <button type="button" onClick={() => addObject('miniGoal')}>
-          Add Mini Goal
-        </button>
-        <button type="button" onClick={() => addObject('arrow')}>
-          Add Arrow
-        </button>
-        <button type="button" onClick={() => addObject('line')}>
-          Add Line
-        </button>
-        <button type="button" onClick={() => addObject('area')}>
-          Add Area / Zone
-        </button>
-        <button type="button" onClick={clearDiagram}>
-          Clear Diagram
-        </button>
+        <div className="diagram-toolbar" aria-label="Diagram object tools">
+          <button type="button" onClick={() => addObject('homePlayer')}>
+            Add Home Player
+          </button>
+          <button type="button" onClick={() => addObject('awayPlayer')}>
+            Add Away Player
+          </button>
+          <button type="button" onClick={() => addObject('neutralPlayer')}>
+            Add Neutral Player
+          </button>
+          <button type="button" onClick={() => addObject('ball')}>
+            Add Ball
+          </button>
+          <button type="button" onClick={() => addObject('cone')}>
+            Add Cone
+          </button>
+          <button type="button" onClick={() => addObject('miniGoal')}>
+            Add Mini Goal
+          </button>
+          <button type="button" onClick={() => addObject('arrow')}>
+            Add Arrow
+          </button>
+          <button type="button" onClick={() => addObject('line')}>
+            Add Line
+          </button>
+          <button type="button" onClick={() => addObject('area')}>
+            Add Area / Zone
+          </button>
+          <button type="button" onClick={clearDiagram}>
+            Clear Diagram
+          </button>
+        </div>
       </div>
 
-      <svg
-        className="diagram-pitch diagram-editor-pitch"
-        onPointerLeave={stopDrag}
-        onPointerMove={moveSelectedObject}
-        onPointerUp={stopDrag}
-        onPointerDown={() => setSelectedObjectId(null)}
-        ref={svgRef}
-        viewBox="0 0 100 60"
-        role="img"
-      >
-        <defs>
-          <marker
-            id="diagram-arrow-head"
-            markerHeight="4"
-            markerWidth="4"
-            orient="auto"
-            refX="3.5"
-            refY="2"
+      <div className="diagram-editor-workspace">
+        <div className="diagram-canvas-column">
+          <svg
+            className="diagram-pitch diagram-editor-pitch"
+            onPointerLeave={stopDrag}
+            onPointerMove={moveSelectedObject}
+            onPointerUp={stopDrag}
+            onPointerDown={() => setSelectedObjectId(null)}
+            ref={svgRef}
+            viewBox="0 0 100 60"
+            role="img"
           >
-            <path d="M 0 0 L 4 2 L 0 4 Z" />
-          </marker>
-        </defs>
-        <PitchLines layout={workingDiagram.pitchLayout} />
-        {workingDiagram.objects.map((object) => (
-          <DiagramObject
-            key={object.id}
-            object={object}
-            onHandlePointerDown={startDrag}
-            onPointerDown={startDrag}
-            selected={object.id === selectedObjectId}
-            showHandles
+            <defs>
+              <marker
+                id="diagram-arrow-head"
+                markerHeight="4"
+                markerWidth="4"
+                orient="auto"
+                refX="3.5"
+                refY="2"
+              >
+                <path d="M 0 0 L 4 2 L 0 4 Z" />
+              </marker>
+            </defs>
+            <PitchLines layout={workingDiagram.pitchLayout} />
+            {workingDiagram.objects.map((object) => (
+              <DiagramObject
+                key={object.id}
+                object={object}
+                onHandlePointerDown={startDrag}
+                onPointerDown={startDrag}
+                selected={object.id === selectedObjectId}
+                showHandles
+              />
+            ))}
+          </svg>
+
+          <label className="diagram-notes-field">
+            Diagram notes
+            <textarea rows="3" value={workingDiagram.notes} onChange={updateNotes} />
+          </label>
+        </div>
+
+        <aside className="diagram-inspector-panel">
+          <SelectedObjectControls
+            object={selectedObject}
+            onChangeNumber={changePlayerNumber}
+            onChangePlayerType={changePlayerType}
+            onDelete={deleteSelectedObject}
+            onDuplicate={duplicateSelectedObject}
+            onLineLength={(delta) => updateSelectedObject((object) => transformLine(object, { lengthDelta: delta }))}
+            onLineRotate={(degrees) => updateSelectedObject((object) => transformLine(object, { rotateDegrees: degrees }))}
+            onResizeArea={resizeArea}
+            onRotateGoalLeft={() => rotateMiniGoal(-90)}
+            onRotateGoalRight={() => rotateMiniGoal(90)}
+            onSizeChange={changeSize}
+            onToggleLineStyle={toggleLineStyle}
           />
-        ))}
-      </svg>
+        </aside>
+      </div>
 
-      <SelectedObjectControls
-        object={selectedObject}
-        onChangeNumber={changePlayerNumber}
-        onChangePlayerType={changePlayerType}
-        onDelete={deleteSelectedObject}
-        onDuplicate={duplicateSelectedObject}
-        onLineLength={(delta) => updateSelectedObject((object) => transformLine(object, { lengthDelta: delta }))}
-        onLineRotate={(degrees) => updateSelectedObject((object) => transformLine(object, { rotateDegrees: degrees }))}
-        onResizeArea={resizeArea}
-        onRotateGoal={() => updateSelectedObject((object) => ({ ...object, rotation: ((object.rotation || 0) + 90) % 360 }))}
-        onSizeChange={changeSize}
-        onToggleLineStyle={toggleLineStyle}
-      />
-
-      <label className="diagram-notes-field">
-        Diagram notes
-        <textarea rows="3" value={workingDiagram.notes} onChange={updateNotes} />
-      </label>
-
-      <div className="form-actions">
-        <button className="primary-button" type="button" onClick={saveDiagram}>
-          Save Diagram
-        </button>
+      <div className="diagram-action-bar form-actions">
         <button className="secondary-button" type="button" onClick={onCancel}>
           Cancel
+        </button>
+        <button className="primary-button" type="button" onClick={saveDiagram}>
+          Save Diagram
         </button>
       </div>
     </div>
@@ -520,7 +536,8 @@ function SelectedObjectControls({
   onLineLength,
   onLineRotate,
   onResizeArea,
-  onRotateGoal,
+  onRotateGoalLeft,
+  onRotateGoalRight,
   onSizeChange,
   onToggleLineStyle,
 }) {
@@ -575,9 +592,14 @@ function SelectedObjectControls({
         )}
 
         {object.type === 'miniGoal' && (
-          <button type="button" onClick={onRotateGoal}>
-            Rotate Goal
-          </button>
+          <>
+            <button type="button" onClick={onRotateGoalLeft}>
+              Rotate Left
+            </button>
+            <button type="button" onClick={onRotateGoalRight}>
+              Rotate Right
+            </button>
+          </>
         )}
 
         {isLine && (
