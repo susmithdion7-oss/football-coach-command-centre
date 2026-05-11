@@ -4,6 +4,7 @@ function Dashboard({
   playerCount,
   recentPastSession,
   sessionCount,
+  tacticalBoardCount,
   upcomingSessions,
 }) {
   const hasUpcomingSessions = upcomingSessions.length > 0
@@ -33,9 +34,9 @@ function Dashboard({
           <p>Structured plans saved locally.</p>
         </article>
         <article className="stat-card">
-          <span>Tactical board</span>
-          <strong>Ready</strong>
-          <p>The page exists as a placeholder for now.</p>
+          <span>Tactical boards</span>
+          <strong>{tacticalBoardCount}</strong>
+          <p>Standalone diagrams saved locally.</p>
         </article>
       </div>
 
