@@ -127,6 +127,7 @@ function App() {
     getStorageItem('tacticalBoards', []),
   )
   const [activeTacticalBoardId, setActiveTacticalBoardId] = useState(null)
+  const [tacticalBoardNotice, setTacticalBoardNotice] = useState('')
 
   useEffect(() => {
     setStorageItem('players', players)
@@ -299,6 +300,7 @@ function App() {
       objects: deepCopy(safeDiagram.objects),
     })
 
+    setTacticalBoardNotice('Copied to Tactical Board.')
     setActivePage('tactics')
     return copiedBoardId
   }
@@ -370,7 +372,9 @@ function App() {
           <TacticalBoard
             activeBoardId={activeTacticalBoardId}
             boards={tacticalBoards}
+            notice={tacticalBoardNotice}
             onAddBoard={addTacticalBoard}
+            onClearNotice={() => setTacticalBoardNotice('')}
             onDeleteBoard={deleteTacticalBoard}
             onDuplicateBoard={duplicateTacticalBoard}
             onSelectBoard={setActiveTacticalBoardId}
