@@ -1,0 +1,232 @@
+.tactical-board-page {
+  display: grid;
+  gap: 14px;
+}
+
+.tactical-workstation-toolbar {
+  align-items: end;
+  background: #ffffff;
+  border: 1px solid #d7e1da;
+  border-radius: 8px;
+  box-shadow: 0 18px 42px rgba(15, 43, 27, 0.08);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(220px, 1.1fr) minmax(170px, 0.7fr) minmax(170px, 0.7fr) minmax(340px, 1.8fr);
+  padding: 14px;
+  position: sticky;
+  top: 0;
+  z-index: 4;
+}
+
+.tactical-workstation-toolbar label,
+.tactical-notes-field {
+  color: #355543;
+  display: grid;
+  font-weight: 800;
+  gap: 7px;
+}
+
+.tactical-board-actions,
+.tactical-object-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tactical-board-actions button,
+.tactical-object-toolbar button {
+  padding: 10px 12px;
+}
+
+.tactical-object-toolbar {
+  background: #ffffff;
+  border: 1px solid #d7e1da;
+  border-radius: 8px;
+  padding: 10px;
+  position: sticky;
+  top: 94px;
+  z-index: 2;
+}
+
+.tactical-object-toolbar button {
+  background: #eef4f0;
+  border-radius: 8px;
+  color: #214530;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.tactical-object-toolbar button:hover {
+  background: #dbe8df;
+}
+
+.tactical-message {
+  margin: 0;
+}
+
+.tactical-workstation-layout {
+  align-items: start;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(230px, 280px) minmax(0, 1fr) minmax(260px, 320px);
+}
+
+.tactical-saved-panel,
+.tactical-centre-panel,
+.tactical-inspector-panel {
+  background: #ffffff;
+  border: 1px solid #d7e1da;
+  border-radius: 8px;
+  box-shadow: 0 18px 42px rgba(15, 43, 27, 0.08);
+}
+
+.tactical-saved-panel,
+.tactical-inspector-panel {
+  display: grid;
+  gap: 14px;
+  max-height: calc(100vh - 220px);
+  overflow: auto;
+  padding: 16px;
+  position: sticky;
+  top: 94px;
+}
+
+.tactical-centre-panel {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+}
+
+.tactical-new-board-button {
+  width: 100%;
+}
+
+.tactical-board-list {
+  display: grid;
+  gap: 10px;
+}
+
+.tactical-board-list-item {
+  background: #f7fbf8;
+  border: 1px solid #d7e1da;
+  border-radius: 8px;
+  color: #17211b;
+  cursor: pointer;
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  text-align: left;
+  width: 100%;
+}
+
+.tactical-board-list-item:hover,
+.tactical-board-list-item.active {
+  background: #e2eee6;
+  border-color: #9fc3ad;
+}
+
+.tactical-board-list-item small {
+  color: #5f7669;
+}
+
+.tactical-board-list-item span {
+  color: #214530;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.tactical-board-pitch {
+  aspect-ratio: 5 / 3;
+  min-height: 560px;
+}
+
+.tactical-inspector-panel .selected-object-panel {
+  box-shadow: none;
+}
+
+.tactical-notes-field textarea {
+  min-height: 180px;
+}
+
+.tactical-presentation-mode {
+  background: #ffffff;
+  border: 1px solid #d7e1da;
+  border-radius: 8px;
+  box-shadow: 0 18px 42px rgba(15, 43, 27, 0.08);
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+}
+
+.tactical-presentation-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+}
+
+.tactical-presentation-header h3 {
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  margin: 0;
+}
+
+.tactical-presentation-header p:last-child {
+  color: #355543;
+  margin-bottom: 0;
+  max-width: 860px;
+  white-space: pre-wrap;
+}
+
+.tactical-presentation-pitch {
+  aspect-ratio: 5 / 3;
+  max-height: calc(100vh - 250px);
+  min-height: 580px;
+}
+
+.activity-diagram-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 1180px) {
+  .tactical-workstation-toolbar,
+  .tactical-workstation-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .tactical-saved-panel,
+  .tactical-inspector-panel,
+  .tactical-object-toolbar {
+    max-height: none;
+    position: static;
+  }
+
+  .tactical-board-pitch,
+  .tactical-presentation-pitch {
+    min-height: 420px;
+  }
+}
+
+@media (max-width: 640px) {
+  .tactical-board-actions button,
+  .tactical-object-toolbar button,
+  .activity-diagram-actions button {
+    flex: 1 1 150px;
+  }
+
+  .tactical-board-pitch,
+  .tactical-presentation-pitch {
+    min-height: 310px;
+  }
+
+  .tactical-presentation-header {
+    flex-direction: column;
+  }
+
+  .tactical-presentation-header button {
+    width: 100%;
+  }
+}
