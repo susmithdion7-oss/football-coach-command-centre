@@ -36,7 +36,7 @@ function Dashboard({ latestSession, onNavigate, playerCount, sessionCount }) {
             <p className="section-kicker">Latest saved session</p>
             <h3>{latestSession.sessionTitle}</h3>
             <p>
-              {latestSession.date || 'No date set'} · {latestSession.primaryTopic || 'No topic set'} ·{' '}
+              {latestSession.date || 'No date set'} - {latestSession.primaryTopic || 'No topic set'} -{' '}
               {latestSession.status || 'Draft'}
             </p>
           </div>
