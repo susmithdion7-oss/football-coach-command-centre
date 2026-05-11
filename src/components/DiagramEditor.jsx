@@ -1,5 +1,13 @@
 import { useRef, useState } from 'react'
-import { createEmptyDiagram, normaliseDiagram } from './DiagramPreview.jsx'
+import {
+  createEmptyDiagram,
+  DiagramObject,
+  getObjectLabel,
+  getObjectTypeLabel,
+  normaliseDiagram,
+  pitchLayouts,
+  PitchLines,
+} from './DiagramPreview.jsx'
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max)
@@ -17,35 +25,69 @@ function getPointFromEvent(event, svgElement) {
   const rect = svgElement.getBoundingClientRect()
 
   return {
-    x: clamp(((event.clientX - rect.left) / rect.width) * 100, 2, 98),
-    y: clamp(((event.clientY - rect.top) / rect.height) * 60, 2, 58),
+    x: clamp(((event.clientX - rect.left) / rect.width) * 100, 0, 100),
+    y: clamp(((event.clientY - rect.top) / rect.height) * 60, 0, 60),
   }
 }
 
-function getPlayerLabel(type, objects) {
-  const prefixByType = {
+function getNextPlayerNumber(type, objects) {
+  const playerNumbers = objects
+    .filter((object) => object.type === type)
+    .map((object) => Number(object.number || String(object.label || '').replace(/\D/g, '')))
+    .filter((number) => Number.isFinite(number))
+
+  return playerNumbers.length > 0 ? Math.max(...playerNumbers) + 1 : 1
+}
+
+function getPlayerPrefix(type) {
+  return {
     homePlayer: 'H',
     awayPlayer: 'A',
     neutralPlayer: 'N',
-  }
-  const prefix = prefixByType[type]
-  const count = objects.filter((object) => object.type === type).length + 1
-
-  return `${prefix}${count}`
+  }[type]
 }
 
 function createDiagramObject(type, objects) {
+  const baseX = clamp(18 + objects.length * 4, 6, 82)
+  const baseY = clamp(18 + objects.length * 3, 6, 50)
   const baseObject = {
     id: createObjectId(type),
     type,
-    x: clamp(20 + objects.length * 4, 5, 82),
-    y: clamp(18 + objects.length * 3, 5, 50),
+    x: baseX,
+    y: baseY,
   }
 
   if (type === 'homePlayer' || type === 'awayPlayer' || type === 'neutralPlayer') {
+    const number = getNextPlayerNumber(type, objects)
+    const prefix = getPlayerPrefix(type)
+
     return {
       ...baseObject,
-      label: getPlayerLabel(type, objects),
+      number: String(number),
+      label: `${prefix}${number}`,
+      size: 4.2,
+    }
+  }
+
+  if (type === 'ball') {
+    return {
+      ...baseObject,
+      size: 3.2,
+    }
+  }
+
+  if (type === 'cone') {
+    return {
+      ...baseObject,
+      size: 4.2,
+    }
+  }
+
+  if (type === 'miniGoal') {
+    return {
+      ...baseObject,
+      size: 11,
+      rotation: 0,
     }
   }
 
@@ -54,101 +96,52 @@ function createDiagramObject(type, objects) {
       ...baseObject,
       width: 24,
       height: 14,
+      label: '',
     }
   }
 
-  if (type === 'arrow') {
+  if (type === 'arrow' || type === 'line') {
     return {
-      ...baseObject,
-      width: 18,
-      height: -8,
+      id: createObjectId(type),
+      type,
+      startX: baseX,
+      startY: baseY,
+      endX: clamp(baseX + 18, 4, 96),
+      endY: clamp(baseY - 8, 4, 56),
+      lineStyle: 'solid',
+      colour: '#101820',
+      width: 1.2,
     }
   }
 
   return baseObject
 }
 
-function PitchLines() {
-  return (
-    <>
-      <rect className="diagram-pitch-border" x="2" y="2" width="96" height="56" rx="1" />
-      <line className="diagram-pitch-line" x1="50" y1="2" x2="50" y2="58" />
-      <circle className="diagram-pitch-line" cx="50" cy="30" r="8" />
-      <circle className="diagram-pitch-spot" cx="50" cy="30" r="0.7" />
-      <rect className="diagram-pitch-line" x="2" y="18" width="14" height="24" />
-      <rect className="diagram-pitch-line" x="84" y="18" width="14" height="24" />
-      <rect className="diagram-pitch-line" x="2" y="24" width="6" height="12" />
-      <rect className="diagram-pitch-line" x="92" y="24" width="6" height="12" />
-    </>
-  )
+function getLineGeometry(object) {
+  const dx = object.endX - object.startX
+  const dy = object.endY - object.startY
+  const length = Math.max(Math.sqrt(dx * dx + dy * dy), 2)
+  const angle = Math.atan2(dy, dx)
+  const centerX = (object.startX + object.endX) / 2
+  const centerY = (object.startY + object.endY) / 2
+
+  return { angle, centerX, centerY, dx, dy, length }
 }
 
-function InteractiveDiagramObject({ object, onPointerDown, selected }) {
-  const highlightClass = selected ? ' selected' : ''
+function transformLine(object, options) {
+  const { angle, centerX, centerY, length } = getLineGeometry(object)
+  const nextAngle = angle + ((options.rotateDegrees || 0) * Math.PI) / 180
+  const nextLength = clamp(length + (options.lengthDelta || 0), 4, 80)
+  const dx = Math.cos(nextAngle) * nextLength * 0.5
+  const dy = Math.sin(nextAngle) * nextLength * 0.5
 
-  if (object.type === 'area') {
-    return (
-      <rect
-        className={`diagram-object diagram-area${highlightClass}`}
-        height={object.height || 14}
-        onPointerDown={(event) => onPointerDown(event, object.id)}
-        width={object.width || 24}
-        x={object.x}
-        y={object.y}
-      />
-    )
+  return {
+    ...object,
+    startX: clamp(centerX - dx, 0, 100),
+    startY: clamp(centerY - dy, 0, 60),
+    endX: clamp(centerX + dx, 0, 100),
+    endY: clamp(centerY + dy, 0, 60),
   }
-
-  if (object.type === 'arrow' || object.type === 'line') {
-    return (
-      <g
-        className={`diagram-object diagram-arrow${highlightClass}`}
-        onPointerDown={(event) => onPointerDown(event, object.id)}
-      >
-        <line
-          markerEnd="url(#editor-arrow-head)"
-          x1={object.x}
-          x2={object.x + (object.width || 18)}
-          y1={object.y}
-          y2={object.y + (object.height || -8)}
-        />
-      </g>
-    )
-  }
-
-  if (object.type === 'cone') {
-    return (
-      <path
-        className={`diagram-object diagram-cone${highlightClass}`}
-        d={`M ${object.x} ${object.y - 2.4} L ${object.x - 2.4} ${object.y + 2.4} L ${object.x + 2.4} ${object.y + 2.4} Z`}
-        onPointerDown={(event) => onPointerDown(event, object.id)}
-      />
-    )
-  }
-
-  if (object.type === 'ball') {
-    return (
-      <g
-        className={`diagram-object diagram-ball${highlightClass}`}
-        onPointerDown={(event) => onPointerDown(event, object.id)}
-      >
-        <circle cx={object.x} cy={object.y} r="2.7" />
-        <path d={`M ${object.x - 1.4} ${object.y} H ${object.x + 1.4} M ${object.x} ${object.y - 1.4} V ${object.y + 1.4}`} />
-      </g>
-    )
-  }
-
-  return (
-    <g
-      className={`diagram-object diagram-player ${object.type}${highlightClass}`}
-      onPointerDown={(event) => onPointerDown(event, object.id)}
-    >
-      <circle cx={object.x} cy={object.y} r="3.3" />
-      <text x={object.x} y={object.y + 1.1}>
-        {object.label}
-      </text>
-    </g>
-  )
 }
 
 function DiagramEditor({ activityName, diagram, onCancel, onSave }) {
@@ -158,6 +151,7 @@ function DiagramEditor({ activityName, diagram, onCancel, onSave }) {
   const [selectedObjectId, setSelectedObjectId] = useState(null)
   const svgRef = useRef(null)
   const dragRef = useRef(null)
+  const selectedObject = workingDiagram.objects.find((object) => object.id === selectedObjectId)
 
   function addObject(type) {
     setWorkingDiagram((currentDiagram) => {
@@ -171,6 +165,19 @@ function DiagramEditor({ activityName, diagram, onCancel, onSave }) {
     })
   }
 
+  function updateSelectedObject(updater) {
+    if (!selectedObjectId) {
+      return
+    }
+
+    setWorkingDiagram((currentDiagram) => ({
+      ...currentDiagram,
+      objects: currentDiagram.objects.map((object) =>
+        object.id === selectedObjectId ? updater(object) : object,
+      ),
+    }))
+  }
+
   function deleteSelectedObject() {
     if (!selectedObjectId) {
       return
@@ -181,6 +188,33 @@ function DiagramEditor({ activityName, diagram, onCancel, onSave }) {
       objects: currentDiagram.objects.filter((object) => object.id !== selectedObjectId),
     }))
     setSelectedObjectId(null)
+  }
+
+  function duplicateSelectedObject() {
+    if (!selectedObject) {
+      return
+    }
+
+    const duplicate = {
+      ...selectedObject,
+      id: createObjectId(selectedObject.type),
+    }
+
+    if (duplicate.type === 'arrow' || duplicate.type === 'line') {
+      duplicate.startX = clamp(duplicate.startX + 4, 0, 100)
+      duplicate.startY = clamp(duplicate.startY + 4, 0, 60)
+      duplicate.endX = clamp(duplicate.endX + 4, 0, 100)
+      duplicate.endY = clamp(duplicate.endY + 4, 0, 60)
+    } else {
+      duplicate.x = clamp(duplicate.x + 4, 0, 96)
+      duplicate.y = clamp(duplicate.y + 4, 0, 56)
+    }
+
+    setWorkingDiagram((currentDiagram) => ({
+      ...currentDiagram,
+      objects: [...currentDiagram.objects, duplicate],
+    }))
+    setSelectedObjectId(duplicate.id)
   }
 
   function clearDiagram() {
@@ -198,24 +232,47 @@ function DiagramEditor({ activityName, diagram, onCancel, onSave }) {
     }))
   }
 
-  function startDrag(event, objectId) {
+  function updatePitchLayout(event) {
+    setWorkingDiagram((currentDiagram) => ({
+      ...currentDiagram,
+      pitchLayout: event.target.value,
+    }))
+  }
+
+  function startDrag(event, objectId, mode = 'move') {
     event.preventDefault()
     event.stopPropagation()
 
     const svgElement = svgRef.current
-    const selectedObject = workingDiagram.objects.find((object) => object.id === objectId)
+    const selectedDiagramObject = workingDiagram.objects.find((object) => object.id === objectId)
 
-    if (!svgElement || !selectedObject) {
+    if (!svgElement || !selectedDiagramObject) {
       return
     }
 
     const point = getPointFromEvent(event, svgElement)
     setSelectedObjectId(objectId)
-    dragRef.current = {
-      objectId,
-      offsetX: point.x - selectedObject.x,
-      offsetY: point.y - selectedObject.y,
+
+    if ((selectedDiagramObject.type === 'arrow' || selectedDiagramObject.type === 'line') && mode === 'move') {
+      dragRef.current = {
+        mode,
+        objectId,
+        offsetX: point.x - selectedDiagramObject.startX,
+        offsetY: point.y - selectedDiagramObject.startY,
+        lineDx: selectedDiagramObject.endX - selectedDiagramObject.startX,
+        lineDy: selectedDiagramObject.endY - selectedDiagramObject.startY,
+      }
+    } else if (mode === 'start' || mode === 'end') {
+      dragRef.current = { mode, objectId }
+    } else {
+      dragRef.current = {
+        mode,
+        objectId,
+        offsetX: point.x - selectedDiagramObject.x,
+        offsetY: point.y - selectedDiagramObject.y,
+      }
     }
+
     svgElement.setPointerCapture(event.pointerId)
   }
 
@@ -225,13 +282,42 @@ function DiagramEditor({ activityName, diagram, onCancel, onSave }) {
     }
 
     const point = getPointFromEvent(event, svgRef.current)
-    const { objectId, offsetX, offsetY } = dragRef.current
+    const { lineDx, lineDy, mode, objectId, offsetX = 0, offsetY = 0 } = dragRef.current
 
     setWorkingDiagram((currentDiagram) => ({
       ...currentDiagram,
       objects: currentDiagram.objects.map((object) => {
         if (object.id !== objectId) {
           return object
+        }
+
+        if ((object.type === 'arrow' || object.type === 'line') && mode === 'start') {
+          return {
+            ...object,
+            startX: clamp(point.x, 0, 100),
+            startY: clamp(point.y, 0, 60),
+          }
+        }
+
+        if ((object.type === 'arrow' || object.type === 'line') && mode === 'end') {
+          return {
+            ...object,
+            endX: clamp(point.x, 0, 100),
+            endY: clamp(point.y, 0, 60),
+          }
+        }
+
+        if (object.type === 'arrow' || object.type === 'line') {
+          const nextStartX = clamp(point.x - offsetX, 0, 100)
+          const nextStartY = clamp(point.y - offsetY, 0, 60)
+
+          return {
+            ...object,
+            startX: nextStartX,
+            startY: nextStartY,
+            endX: clamp(nextStartX + lineDx, 0, 100),
+            endY: clamp(nextStartY + lineDy, 0, 60),
+          }
         }
 
         const maxX = object.type === 'area' ? 98 - (object.width || 24) : 98
@@ -250,12 +336,59 @@ function DiagramEditor({ activityName, diagram, onCancel, onSave }) {
     dragRef.current = null
   }
 
+  function changeSize(delta) {
+    updateSelectedObject((object) => ({
+      ...object,
+      size: clamp((object.size || 4) + delta, 1.5, 22),
+    }))
+  }
+
+  function resizeArea(widthDelta, heightDelta) {
+    updateSelectedObject((object) => ({
+      ...object,
+      width: clamp((object.width || 24) + widthDelta, 6, 80),
+      height: clamp((object.height || 14) + heightDelta, 5, 50),
+    }))
+  }
+
+  function changePlayerNumber(event) {
+    const number = event.target.value
+
+    updateSelectedObject((object) => ({
+      ...object,
+      number,
+      label: `${getPlayerPrefix(object.type)}${number}`,
+    }))
+  }
+
+  function changePlayerType(event) {
+    const nextType = event.target.value
+
+    updateSelectedObject((object) => ({
+      ...object,
+      type: nextType,
+      label: `${getPlayerPrefix(nextType)}${object.number || '1'}`,
+    }))
+  }
+
+  function toggleLineStyle() {
+    updateSelectedObject((object) => ({
+      ...object,
+      lineStyle: object.lineStyle === 'dashed' ? 'solid' : 'dashed',
+    }))
+  }
+
   function saveDiagram() {
-    onSave({
-      ...createEmptyDiagram(`${activityName} diagram`),
-      ...workingDiagram,
-      title: workingDiagram.title || `${activityName} diagram`,
-    })
+    onSave(
+      normaliseDiagram(
+        {
+          ...createEmptyDiagram(`${activityName} diagram`),
+          ...workingDiagram,
+          title: workingDiagram.title || `${activityName} diagram`,
+        },
+        `${activityName} diagram`,
+      ),
+    )
   }
 
   return (
@@ -267,6 +400,17 @@ function DiagramEditor({ activityName, diagram, onCancel, onSave }) {
           <p>Create a static setup for this activity. Select an object, drag it, then save the diagram.</p>
         </div>
       </div>
+
+      <label className="diagram-layout-field">
+        Pitch layout
+        <select value={workingDiagram.pitchLayout} onChange={updatePitchLayout}>
+          {pitchLayouts.map((layout) => (
+            <option key={layout.value} value={layout.value}>
+              {layout.label}
+            </option>
+          ))}
+        </select>
+      </label>
 
       <div className="diagram-toolbar">
         <button type="button" onClick={() => addObject('homePlayer')}>
@@ -284,14 +428,17 @@ function DiagramEditor({ activityName, diagram, onCancel, onSave }) {
         <button type="button" onClick={() => addObject('cone')}>
           Add Cone
         </button>
+        <button type="button" onClick={() => addObject('miniGoal')}>
+          Add Mini Goal
+        </button>
         <button type="button" onClick={() => addObject('arrow')}>
-          Add Arrow / Line
+          Add Arrow
+        </button>
+        <button type="button" onClick={() => addObject('line')}>
+          Add Line
         </button>
         <button type="button" onClick={() => addObject('area')}>
           Add Area / Zone
-        </button>
-        <button type="button" onClick={deleteSelectedObject} disabled={!selectedObjectId}>
-          Delete Selected
         </button>
         <button type="button" onClick={clearDiagram}>
           Clear Diagram
@@ -310,7 +457,7 @@ function DiagramEditor({ activityName, diagram, onCancel, onSave }) {
       >
         <defs>
           <marker
-            id="editor-arrow-head"
+            id="diagram-arrow-head"
             markerHeight="4"
             markerWidth="4"
             orient="auto"
@@ -320,16 +467,32 @@ function DiagramEditor({ activityName, diagram, onCancel, onSave }) {
             <path d="M 0 0 L 4 2 L 0 4 Z" />
           </marker>
         </defs>
-        <PitchLines />
+        <PitchLines layout={workingDiagram.pitchLayout} />
         {workingDiagram.objects.map((object) => (
-          <InteractiveDiagramObject
+          <DiagramObject
             key={object.id}
             object={object}
+            onHandlePointerDown={startDrag}
             onPointerDown={startDrag}
             selected={object.id === selectedObjectId}
+            showHandles
           />
         ))}
       </svg>
+
+      <SelectedObjectControls
+        object={selectedObject}
+        onChangeNumber={changePlayerNumber}
+        onChangePlayerType={changePlayerType}
+        onDelete={deleteSelectedObject}
+        onDuplicate={duplicateSelectedObject}
+        onLineLength={(delta) => updateSelectedObject((object) => transformLine(object, { lengthDelta: delta }))}
+        onLineRotate={(degrees) => updateSelectedObject((object) => transformLine(object, { rotateDegrees: degrees }))}
+        onResizeArea={resizeArea}
+        onRotateGoal={() => updateSelectedObject((object) => ({ ...object, rotation: ((object.rotation || 0) + 90) % 360 }))}
+        onSizeChange={changeSize}
+        onToggleLineStyle={toggleLineStyle}
+      />
 
       <label className="diagram-notes-field">
         Diagram notes
@@ -345,6 +508,123 @@ function DiagramEditor({ activityName, diagram, onCancel, onSave }) {
         </button>
       </div>
     </div>
+  )
+}
+
+function SelectedObjectControls({
+  object,
+  onChangeNumber,
+  onChangePlayerType,
+  onDelete,
+  onDuplicate,
+  onLineLength,
+  onLineRotate,
+  onResizeArea,
+  onRotateGoal,
+  onSizeChange,
+  onToggleLineStyle,
+}) {
+  if (!object) {
+    return (
+      <section className="selected-object-panel muted">
+        <p className="section-kicker">Selected Object Controls</p>
+        <p>Select an object on the pitch to edit it.</p>
+      </section>
+    )
+  }
+
+  const isPlayer = object.type === 'homePlayer' || object.type === 'awayPlayer' || object.type === 'neutralPlayer'
+  const canResize = isPlayer || object.type === 'ball' || object.type === 'cone' || object.type === 'miniGoal'
+  const isLine = object.type === 'arrow' || object.type === 'line'
+
+  return (
+    <section className="selected-object-panel">
+      <div>
+        <p className="section-kicker">Selected Object Controls</p>
+        <h4>{getObjectTypeLabel(object)}</h4>
+        <p>{getObjectLabel(object)}</p>
+      </div>
+
+      {isPlayer && (
+        <div className="selected-control-grid">
+          <label>
+            Number
+            <input value={object.number || ''} onChange={onChangeNumber} />
+          </label>
+          <label>
+            Player type
+            <select value={object.type} onChange={onChangePlayerType}>
+              <option value="homePlayer">Home</option>
+              <option value="awayPlayer">Away</option>
+              <option value="neutralPlayer">Neutral</option>
+            </select>
+          </label>
+        </div>
+      )}
+
+      <div className="selected-control-buttons">
+        {canResize && (
+          <>
+            <button type="button" onClick={() => onSizeChange(-0.8)}>
+              Size -
+            </button>
+            <button type="button" onClick={() => onSizeChange(0.8)}>
+              Size +
+            </button>
+          </>
+        )}
+
+        {object.type === 'miniGoal' && (
+          <button type="button" onClick={onRotateGoal}>
+            Rotate Goal
+          </button>
+        )}
+
+        {isLine && (
+          <>
+            <button type="button" onClick={onToggleLineStyle}>
+              {object.lineStyle === 'dashed' ? 'Solid line' : 'Dashed line'}
+            </button>
+            <button type="button" onClick={() => onLineRotate(-15)}>
+              Rotate Left
+            </button>
+            <button type="button" onClick={() => onLineRotate(15)}>
+              Rotate Right
+            </button>
+            <button type="button" onClick={() => onLineLength(-5)}>
+              Length -
+            </button>
+            <button type="button" onClick={() => onLineLength(5)}>
+              Length +
+            </button>
+          </>
+        )}
+
+        {object.type === 'area' && (
+          <>
+            <button type="button" onClick={() => onResizeArea(5, 0)}>
+              Wider
+            </button>
+            <button type="button" onClick={() => onResizeArea(-5, 0)}>
+              Narrower
+            </button>
+            <button type="button" onClick={() => onResizeArea(0, 4)}>
+              Taller
+            </button>
+            <button type="button" onClick={() => onResizeArea(0, -4)}>
+              Shorter
+            </button>
+          </>
+        )}
+
+        <button type="button" onClick={onDuplicate}>
+          Duplicate Selected
+        </button>
+        <button type="button" onClick={onDelete}>
+          Delete Selected
+        </button>
+      </div>
+    </section>
   )
 }
 
