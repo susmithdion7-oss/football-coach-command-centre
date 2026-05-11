@@ -1,0 +1,205 @@
+.activity-diagram-section {
+  background: #f7fbf8;
+  border: 1px solid #d7e1da;
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+}
+
+.activity-diagram-header,
+.diagram-editor-heading {
+  align-items: flex-start;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.activity-diagram-header h4,
+.diagram-editor-heading h4 {
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.activity-diagram-header p,
+.diagram-editor-heading p {
+  margin-bottom: 0;
+}
+
+.diagram-preview-wrap {
+  display: grid;
+  gap: 10px;
+}
+
+.diagram-editor-panel {
+  background: #ffffff;
+  border: 1px solid #c5d8cb;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(21, 86, 54, 0.04);
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+}
+
+.diagram-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.diagram-toolbar button {
+  background: #eef4f0;
+  border-radius: 8px;
+  color: #214530;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 9px 11px;
+}
+
+.diagram-toolbar button:hover {
+  background: #dbe8df;
+}
+
+.diagram-toolbar button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.diagram-pitch {
+  background: #1f7a45;
+  border: 2px solid #0b2d1d;
+  border-radius: 8px;
+  display: block;
+  overflow: hidden;
+  touch-action: none;
+  width: 100%;
+}
+
+.diagram-preview {
+  max-height: 260px;
+}
+
+.diagram-editor-pitch {
+  min-height: 360px;
+}
+
+.diagram-pitch-border,
+.diagram-pitch-line {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.78);
+  stroke-width: 0.7;
+}
+
+.diagram-pitch-spot {
+  fill: rgba(255, 255, 255, 0.84);
+}
+
+.diagram-object {
+  cursor: grab;
+}
+
+.diagram-object.selected {
+  filter: drop-shadow(0 0 1.2px #ffffff) drop-shadow(0 0 2px #ffd166);
+}
+
+.diagram-player circle {
+  stroke: #ffffff;
+  stroke-width: 0.45;
+}
+
+.diagram-player text {
+  dominant-baseline: middle;
+  fill: #ffffff;
+  font-size: 2.6px;
+  font-weight: 900;
+  pointer-events: none;
+  text-anchor: middle;
+}
+
+.diagram-player.homePlayer circle {
+  fill: #0b2d1d;
+}
+
+.diagram-player.awayPlayer circle {
+  fill: #f7fbf8;
+  stroke: #0b2d1d;
+}
+
+.diagram-player.awayPlayer text {
+  fill: #0b2d1d;
+}
+
+.diagram-player.neutralPlayer circle {
+  fill: #f0c84b;
+  stroke: #604b00;
+}
+
+.diagram-player.neutralPlayer text {
+  fill: #17211b;
+}
+
+.diagram-ball circle {
+  fill: #ffffff;
+  stroke: #17211b;
+  stroke-width: 0.45;
+}
+
+.diagram-ball path {
+  fill: none;
+  stroke: #17211b;
+  stroke-width: 0.35;
+}
+
+.diagram-cone {
+  fill: #f28c28;
+  stroke: #8a4b00;
+  stroke-width: 0.45;
+}
+
+.diagram-arrow line {
+  stroke: #101820;
+  stroke-linecap: round;
+  stroke-width: 1.1;
+}
+
+.diagram-arrow marker path,
+#editor-arrow-head path,
+#diagram-arrow-head path {
+  fill: #101820;
+}
+
+.diagram-area {
+  fill: rgba(255, 255, 255, 0.22);
+  stroke: #ffffff;
+  stroke-dasharray: 2 1.4;
+  stroke-width: 0.65;
+}
+
+.diagram-notes-field {
+  color: #355543;
+  display: grid;
+  font-weight: 800;
+  gap: 7px;
+}
+
+@media (max-width: 820px) {
+  .diagram-editor-pitch {
+    min-height: 260px;
+  }
+}
+
+@media (max-width: 560px) {
+  .activity-diagram-header,
+  .diagram-editor-heading {
+    flex-direction: column;
+  }
+
+  .activity-diagram-header .secondary-button,
+  .diagram-editor-panel .form-actions button {
+    width: 100%;
+  }
+
+  .diagram-toolbar button {
+    flex: 1 1 140px;
+  }
+}

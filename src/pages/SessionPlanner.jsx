@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react'
+import DiagramEditor from '../components/DiagramEditor.jsx'
+import DiagramPreview, { createEmptyDiagram, normaliseDiagram } from '../components/DiagramPreview.jsx'
 
 const gameMoments = [
   'In possession',
@@ -119,6 +121,7 @@ function createEmptyActivity(name) {
     regression: '',
     coachNotes: '',
     diagramNotes: '',
+    diagram: createEmptyDiagram(`${name} diagram`),
   }
 }
 
@@ -204,11 +207,17 @@ function SessionPlanner({
       ...session,
       equipmentAvailable: session.equipmentAvailable || [],
       topicTags: session.topicTags || [],
-      activities: activityTemplates.map((activityName, index) => ({
-        ...createEmptyActivity(activityName),
-        ...(session.activities?.[index] || {}),
-        name: session.activities?.[index]?.name || activityName,
-      })),
+      activities: activityTemplates.map((activityName, index) => {
+        const savedActivity = session.activities?.[index] || {}
+        const activityTitle = savedActivity.name || activityName
+
+        return {
+          ...createEmptyActivity(activityName),
+          ...savedActivity,
+          name: activityTitle,
+          diagram: normaliseDiagram(savedActivity.diagram, `${activityTitle} diagram`),
+        }
+      }),
     }
   }
 
@@ -276,6 +285,7 @@ function SessionPlanner({
         regression: activity.regression.trim(),
         coachNotes: activity.coachNotes.trim(),
         diagramNotes: activity.diagramNotes.trim(),
+        diagram: normaliseDiagram(activity.diagram, `${activity.name || 'Activity'} diagram`),
       })),
     }
   }
@@ -620,6 +630,15 @@ function CheckboxGroup({ fieldName, options, selectedValues, title, onToggle }) 
 }
 
 function ActivitySection({ activity, index, onChange }) {
+  const [isEditingDiagram, setIsEditingDiagram] = useState(false)
+  const diagram = normaliseDiagram(activity.diagram, `${activity.name} diagram`)
+  const hasDiagram = diagram.objects.length > 0
+
+  function saveActivityDiagram(nextDiagram) {
+    onChange(index, 'diagram', nextDiagram)
+    setIsEditingDiagram(false)
+  }
+
   return (
     <section className="session-card activity-card">
       <div className="form-heading">
@@ -715,6 +734,34 @@ function ActivitySection({ activity, index, onChange }) {
           />
         </label>
       </div>
+
+      <section className="activity-diagram-section">
+        <div className="activity-diagram-header">
+          <div>
+            <p className="section-kicker">Activity Diagram</p>
+            <h4>{hasDiagram ? diagram.title : 'No diagram added yet.'}</h4>
+            <p>Create a visual setup for this activity. The diagram is saved with this session activity.</p>
+          </div>
+          <button
+            className="secondary-button"
+            type="button"
+            onClick={() => setIsEditingDiagram(true)}
+          >
+            Edit Diagram
+          </button>
+        </div>
+
+        <DiagramPreview diagram={diagram} />
+
+        {isEditingDiagram && (
+          <DiagramEditor
+            activityName={activity.name || activityTemplates[index]}
+            diagram={diagram}
+            onCancel={() => setIsEditingDiagram(false)}
+            onSave={saveActivityDiagram}
+          />
+        )}
+      </section>
     </section>
   )
 }
