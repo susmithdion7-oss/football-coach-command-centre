@@ -1,4 +1,4 @@
-function Dashboard({ onNavigate, playerCount }) {
+function Dashboard({ latestSession, onNavigate, playerCount, sessionCount }) {
   return (
     <section className="page-stack">
       <div className="welcome-panel">
@@ -20,8 +20,8 @@ function Dashboard({ onNavigate, playerCount }) {
         </article>
         <article className="stat-card">
           <span>Saved sessions</span>
-          <strong>0</strong>
-          <p>Session planning is not built yet.</p>
+          <strong>{sessionCount}</strong>
+          <p>Structured plans saved locally.</p>
         </article>
         <article className="stat-card">
           <span>Tactical board</span>
@@ -29,6 +29,22 @@ function Dashboard({ onNavigate, playerCount }) {
           <p>The page exists as a placeholder for now.</p>
         </article>
       </div>
+
+      {latestSession && (
+        <article className="latest-session-card">
+          <div>
+            <p className="section-kicker">Latest saved session</p>
+            <h3>{latestSession.sessionTitle}</h3>
+            <p>
+              {latestSession.date || 'No date set'} · {latestSession.primaryTopic || 'No topic set'} ·{' '}
+              {latestSession.status || 'Draft'}
+            </p>
+          </div>
+          <button type="button" onClick={() => onNavigate('sessions')}>
+            Open Session Planner
+          </button>
+        </article>
+      )}
 
       <div className="quick-actions">
         <button type="button" onClick={() => onNavigate('players')}>
