@@ -16,19 +16,25 @@
 }
 
 .activity-diagram-header h4,
-.diagram-editor-heading h4 {
+.diagram-editor-heading h4,
+.selected-object-panel h4 {
   font-size: 1.2rem;
   margin: 0;
 }
 
 .activity-diagram-header p,
-.diagram-editor-heading p {
+.diagram-editor-heading p,
+.selected-object-panel p {
   margin-bottom: 0;
 }
 
 .diagram-preview-wrap {
-  display: grid;
-  gap: 10px;
+  display: flex;
+  justify-content: center;
+}
+
+.diagram-preview-wrap .empty-message {
+  width: 100%;
 }
 
 .diagram-editor-panel {
@@ -41,13 +47,28 @@
   padding: 16px;
 }
 
-.diagram-toolbar {
+.diagram-layout-field,
+.diagram-notes-field,
+.selected-control-grid label {
+  color: #355543;
+  display: grid;
+  font-weight: 800;
+  gap: 7px;
+}
+
+.diagram-layout-field {
+  max-width: 320px;
+}
+
+.diagram-toolbar,
+.selected-control-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.diagram-toolbar button {
+.diagram-toolbar button,
+.selected-control-buttons button {
   background: #eef4f0;
   border-radius: 8px;
   color: #214530;
@@ -56,11 +77,13 @@
   padding: 9px 11px;
 }
 
-.diagram-toolbar button:hover {
+.diagram-toolbar button:hover,
+.selected-control-buttons button:hover {
   background: #dbe8df;
 }
 
-.diagram-toolbar button:disabled {
+.diagram-toolbar button:disabled,
+.selected-control-buttons button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
 }
@@ -76,11 +99,14 @@
 }
 
 .diagram-preview {
-  max-height: 260px;
+  aspect-ratio: 5 / 3;
+  max-height: 230px;
+  max-width: 520px;
 }
 
 .diagram-editor-pitch {
-  min-height: 360px;
+  aspect-ratio: 5 / 3;
+  min-height: 420px;
 }
 
 .diagram-pitch-border,
@@ -102,40 +128,51 @@
   filter: drop-shadow(0 0 1.2px #ffffff) drop-shadow(0 0 2px #ffd166);
 }
 
-.diagram-player circle {
-  stroke: #ffffff;
-  stroke-width: 0.45;
+.diagram-player-head {
+  fill: #f7d7b5;
+  stroke: #17211b;
+  stroke-width: 0.25;
 }
 
-.diagram-player text {
+.diagram-player-shirt {
+  stroke: #ffffff;
+  stroke-linejoin: round;
+  stroke-width: 0.42;
+}
+
+.diagram-player-number {
   dominant-baseline: middle;
-  fill: #ffffff;
-  font-size: 2.6px;
+  font-size: 2.15px;
   font-weight: 900;
   pointer-events: none;
   text-anchor: middle;
 }
 
-.diagram-player.homePlayer circle {
+.diagram-player.homePlayer .diagram-player-shirt {
   fill: #0b2d1d;
 }
 
-.diagram-player.awayPlayer circle {
+.diagram-player.homePlayer .diagram-player-number {
+  fill: #ffffff;
+}
+
+.diagram-player.awayPlayer .diagram-player-shirt {
   fill: #f7fbf8;
   stroke: #0b2d1d;
 }
 
-.diagram-player.awayPlayer text {
+.diagram-player.awayPlayer .diagram-player-number {
   fill: #0b2d1d;
 }
 
-.diagram-player.neutralPlayer circle {
+.diagram-player.neutralPlayer .diagram-player-shirt {
   fill: #f0c84b;
   stroke: #604b00;
 }
 
-.diagram-player.neutralPlayer text {
+.diagram-player.neutralPlayer .diagram-player-number {
   fill: #17211b;
+  font-size: 1.8px;
 }
 
 .diagram-ball circle {
@@ -147,25 +184,58 @@
 .diagram-ball path {
   fill: none;
   stroke: #17211b;
-  stroke-width: 0.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 0.36;
 }
 
-.diagram-cone {
+.diagram-ball path:first-of-type {
+  fill: rgba(23, 33, 27, 0.08);
+}
+
+.diagram-cone path {
   fill: #f28c28;
   stroke: #8a4b00;
+  stroke-linejoin: round;
   stroke-width: 0.45;
 }
 
-.diagram-arrow line {
-  stroke: #101820;
+.diagram-cone line {
+  stroke: #ffd19a;
+  stroke-width: 0.45;
+}
+
+.diagram-mini-goal path,
+.diagram-mini-goal line {
+  fill: none;
+  stroke: #ffffff;
   stroke-linecap: round;
-  stroke-width: 1.1;
+  stroke-linejoin: round;
+  stroke-width: 0.95;
+}
+
+.diagram-mini-goal path {
+  filter: drop-shadow(0 0 1px rgba(11, 45, 29, 0.65));
+}
+
+.diagram-arrow line {
+  stroke-linecap: round;
+}
+
+.diagram-arrow.dashed line {
+  stroke-dasharray: 3 2;
 }
 
 .diagram-arrow marker path,
-#editor-arrow-head path,
 #diagram-arrow-head path {
   fill: #101820;
+}
+
+.diagram-line-handle {
+  cursor: crosshair;
+  fill: #ffd166;
+  stroke: #17211b;
+  stroke-width: 0.35;
 }
 
 .diagram-area {
@@ -173,6 +243,32 @@
   stroke: #ffffff;
   stroke-dasharray: 2 1.4;
   stroke-width: 0.65;
+}
+
+.diagram-area-label {
+  fill: #ffffff;
+  font-size: 2.4px;
+  font-weight: 900;
+  pointer-events: none;
+}
+
+.selected-object-panel {
+  background: #f7fbf8;
+  border: 1px solid #d7e1da;
+  border-radius: 8px;
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+}
+
+.selected-object-panel.muted {
+  color: #5f7669;
+}
+
+.selected-control-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .diagram-notes-field {
@@ -184,7 +280,11 @@
 
 @media (max-width: 820px) {
   .diagram-editor-pitch {
-    min-height: 260px;
+    min-height: 300px;
+  }
+
+  .selected-control-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -199,7 +299,8 @@
     width: 100%;
   }
 
-  .diagram-toolbar button {
+  .diagram-toolbar button,
+  .selected-control-buttons button {
     flex: 1 1 140px;
   }
 }
