@@ -182,6 +182,22 @@ function App() {
     getDashboardSessionSummary(sessions)
   const themeStyle = getThemeStyle(teamIdentity)
   const isDashboardPage = activePage === 'dashboard'
+  const isPlayersPage = activePage === 'players'
+  const workspacePageClass = [
+    'main-content',
+    isDashboardPage ? 'dashboard-main-content' : '',
+    isPlayersPage ? 'players-main-content' : '',
+  ].filter(Boolean).join(' ')
+  const workspaceHeaderClass = [
+    'topbar',
+    isDashboardPage ? 'dashboard-topbar' : '',
+    isPlayersPage ? 'players-topbar' : '',
+  ].filter(Boolean).join(' ')
+  const workspaceFrameClass = [
+    'content-frame',
+    isDashboardPage ? 'dashboard-content-frame' : '',
+    isPlayersPage ? 'players-content-frame' : '',
+  ].filter(Boolean).join(' ')
 
   function saveTeamIdentity(nextIdentity) {
     const identityToSave = prepareTeamIdentityForSave(nextIdentity, teamIdentity)
@@ -423,8 +439,8 @@ function App() {
         </div>
       </aside>
 
-      <main className={isDashboardPage ? 'main-content dashboard-main-content' : 'main-content'}>
-        <header className={isDashboardPage ? 'topbar dashboard-topbar' : 'topbar'}>
+      <main className={workspacePageClass}>
+        <header className={workspaceHeaderClass}>
           <div className="topbar-title topbar-team-title">
             <TeamBadge identity={teamIdentity} size="header" label={`${teamIdentity.teamName} crest`} />
             <div>
@@ -450,7 +466,7 @@ function App() {
           </div>
         </header>
 
-        <div className={isDashboardPage ? 'content-frame dashboard-content-frame' : 'content-frame'}>
+        <div className={workspaceFrameClass}>
           {activePage === 'dashboard' && (
             <Dashboard
               nextSession={nextSession}
