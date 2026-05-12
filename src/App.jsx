@@ -16,11 +16,16 @@ import {
 } from './utils/teamIdentity.js'
 
 const pages = [
-  { id: 'dashboard', icon: 'HQ', label: 'Dashboard' },
+  { id: 'dashboard', icon: 'HQ', label: 'Home' },
   { id: 'players', icon: 'PL', label: 'Players' },
   { id: 'sessions', icon: 'SP', label: 'Session Planner' },
   { id: 'tactics', icon: 'TB', label: 'Tactical Board' },
-  { id: 'clubSetup', icon: 'ID', label: 'Club Setup' },
+]
+
+const futurePages = [
+  { id: 'matchCentre', icon: 'MC', label: 'Match Centre' },
+  { id: 'calendar', icon: 'CA', label: 'Calendar' },
+  { id: 'reports', icon: 'RP', label: 'Reports' },
 ]
 
 function createRecordId(prefix) {
@@ -172,7 +177,7 @@ function App() {
     applyTeamTheme(teamIdentity)
   }, [teamIdentity])
 
-  const pageTitle = pages.find((page) => page.id === activePage)?.label
+  const pageTitle = pages.find((page) => page.id === activePage)?.label || 'Club Setup'
   const { nextSession, recentPastSession, upcomingSessions } =
     getDashboardSessionSummary(sessions)
   const themeStyle = getThemeStyle(teamIdentity)
@@ -380,6 +385,12 @@ function App() {
               <span>{page.label}</span>
             </button>
           ))}
+          {futurePages.map((page) => (
+            <button className="nav-item nav-item-disabled" disabled key={page.id} type="button">
+              <span className="nav-icon">{page.icon}</span>
+              <span>{page.label}</span>
+            </button>
+          ))}
         </nav>
 
         <div className="sidebar-footer">
@@ -396,6 +407,14 @@ function App() {
               <strong>{teamIdentity.coachName}</strong>
             </div>
           </div>
+
+          <button
+            className={activePage === 'clubSetup' ? 'sidebar-settings active' : 'sidebar-settings'}
+            onClick={() => setActivePage('clubSetup')}
+            type="button"
+          >
+            Club Setup / Settings
+          </button>
 
           <button className="sidebar-help" type="button">
             Help & support
@@ -436,9 +455,11 @@ function App() {
               nextSession={nextSession}
               onNavigate={setActivePage}
               playerCount={players.length}
+              players={players}
               recentPastSession={recentPastSession}
               sessionCount={sessions.length}
               tacticalBoardCount={tacticalBoards.length}
+              tacticalBoards={tacticalBoards}
               teamIdentity={teamIdentity}
               upcomingSessions={upcomingSessions}
             />
