@@ -1,3 +1,5 @@
+import TeamBadge from '../components/TeamBadge.jsx'
+
 function Dashboard({
   nextSession,
   onNavigate,
@@ -17,13 +19,16 @@ function Dashboard({
   return (
     <section className="page-stack">
       <div className="welcome-panel team-welcome-panel">
-        <div>
-          <p className="section-kicker">Good to see you, {coachName}</p>
-          <h3>{teamName} Coach HQ is ready.</h3>
-          <p>
-            Plan the week, track your squad, build sessions, and prepare tactical
-            ideas from one calm team workspace.
-          </p>
+        <div className="dashboard-team-intro">
+          <TeamBadge identity={teamIdentity} size="hero" label={`${teamName} crest`} />
+          <div>
+            <p className="section-kicker">Good to see you, {coachName}</p>
+            <h3>{teamName} Coach HQ is ready.</h3>
+            <p>
+              Plan the week, track your squad, build sessions, and prepare tactical
+              ideas from one calm team workspace.
+            </p>
+          </div>
         </div>
 
         {(teamGoal || teamMotto) && (
