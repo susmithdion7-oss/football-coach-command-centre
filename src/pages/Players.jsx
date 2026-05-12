@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { getStorageItem, removeStorageItem, setStorageItem } from '../utils/storage.js'
 
 const emptyPlayer = {
   fullName: '',
@@ -16,6 +17,9 @@ const emptyPlayer = {
   coachNotes: '',
 }
 
+const emptyPlayerSnapshot = JSON.stringify(emptyPlayer)
+const playerDraftKey = 'playerDraft'
+
 const ratingFields = [
   { name: 'technicalRating', label: 'Technical rating' },
   { name: 'physicalRating', label: 'Physical rating' },
@@ -23,18 +27,99 @@ const ratingFields = [
   { name: 'mentalRating', label: 'Mentality / attitude rating' },
 ]
 
+function getPlayerForForm(player = {}) {
+  return { ...emptyPlayer, ...player }
+}
+
+function getPlayerSnapshot(player) {
+  return JSON.stringify(getPlayerForForm(player))
+}
+
+function getDraftInitialState(players) {
+  const draft = getStorageItem(playerDraftKey, null)
+
+  if (draft?.formData) {
+    const restoredFormData = getPlayerForForm(draft.formData)
+    const restoredSnapshot = getPlayerSnapshot(restoredFormData)
+    const savedSnapshot = draft.savedSnapshot || emptyPlayerSnapshot
+    const restoredMode = draft.formMode === 'edit' ? 'edit' : 'add'
+
+    if (restoredSnapshot !== emptyPlayerSnapshot || draft.selectedPlayerId) {
+      return {
+        formData: restoredFormData,
+        formMode: restoredMode,
+        restored: true,
+        savedSnapshot,
+        selectedPlayerId: draft.selectedPlayerId ?? null,
+      }
+    }
+  }
+
+  return {
+    formData: emptyPlayer,
+    formMode: 'add',
+    restored: false,
+    savedSnapshot: emptyPlayerSnapshot,
+    selectedPlayerId: players[0]?.id ?? null,
+  }
+}
+
 function Players({ players, onAddPlayer, onDeletePlayer, onUpdatePlayer }) {
-  const [selectedPlayerId, setSelectedPlayerId] = useState(players[0]?.id ?? null)
-  const [formMode, setFormMode] = useState('add')
-  const [formData, setFormData] = useState(emptyPlayer)
+  const [initialDraftState] = useState(() => getDraftInitialState(players))
+  const [selectedPlayerId, setSelectedPlayerId] = useState(initialDraftState.selectedPlayerId)
+  const [formMode, setFormMode] = useState(initialDraftState.formMode)
+  const [formData, setFormData] = useState(initialDraftState.formData)
+  const [message, setMessage] = useState(initialDraftState.restored ? 'Draft restored.' : '')
+  const [draftStatus, setDraftStatus] = useState(initialDraftState.restored ? 'Unsaved changes' : '')
+  const savedSnapshotRef = useRef(initialDraftState.savedSnapshot)
+  const currentSnapshot = getPlayerSnapshot(formData)
+  const hasUnsavedChanges =
+    currentSnapshot !== savedSnapshotRef.current &&
+    (currentSnapshot !== emptyPlayerSnapshot || formMode === 'edit')
 
   const selectedPlayer = useMemo(
     () => players.find((player) => player.id === selectedPlayerId),
     [players, selectedPlayerId],
   )
 
+  useEffect(() => {
+    if (!hasUnsavedChanges) {
+      return
+    }
+
+    setStorageItem(playerDraftKey, {
+      formData,
+      formMode,
+      lastDraftSavedAt: new Date().toISOString(),
+      savedSnapshot: savedSnapshotRef.current,
+      selectedPlayerId,
+    })
+    setDraftStatus('Draft saved automatically')
+  }, [formData, formMode, hasUnsavedChanges, selectedPlayerId])
+
+  function confirmDiscardUnsaved(messageText) {
+    return !hasUnsavedChanges || window.confirm(messageText)
+  }
+
+  function setCleanPlayerForm(nextFormData, nextSelectedPlayerId, nextFormMode, nextMessage) {
+    const normalisedForm = getPlayerForForm(nextFormData)
+    savedSnapshotRef.current = getPlayerSnapshot(normalisedForm)
+    setSelectedPlayerId(nextSelectedPlayerId)
+    setFormData(normalisedForm)
+    setFormMode(nextFormMode)
+    setDraftStatus('')
+    setMessage(nextMessage)
+  }
+
+  function clearPlayerDraft() {
+    removeStorageItem(playerDraftKey)
+    setDraftStatus('')
+  }
+
   function handleChange(event) {
     const { name, value } = event.target
+    setMessage('')
+    setDraftStatus('Unsaved changes')
     setFormData((currentData) => ({ ...currentData, [name]: value }))
   }
 
@@ -42,6 +127,7 @@ function Players({ players, onAddPlayer, onDeletePlayer, onUpdatePlayer }) {
     event.preventDefault()
 
     if (!formData.fullName.trim()) {
+      setMessage('Please add a player name before saving.')
       return
     }
 
@@ -59,34 +145,60 @@ function Players({ players, onAddPlayer, onDeletePlayer, onUpdatePlayer }) {
 
     if (formMode === 'edit' && selectedPlayer) {
       onUpdatePlayer(selectedPlayer.id, cleanPlayer)
-      setFormMode('view')
+      clearPlayerDraft()
+      setCleanPlayerForm(cleanPlayer, selectedPlayer.id, 'view', 'Player updated and saved locally.')
+      setDraftStatus('Saved')
       return
     }
 
     const newPlayerId = onAddPlayer(cleanPlayer)
-    setSelectedPlayerId(newPlayerId)
-    setFormData(emptyPlayer)
-    setFormMode('view')
+    clearPlayerDraft()
+    setCleanPlayerForm(emptyPlayer, newPlayerId, 'view', 'Player created and saved locally.')
+    setDraftStatus('Saved')
   }
 
   function startAddingPlayer() {
-    setSelectedPlayerId(null)
-    setFormData(emptyPlayer)
-    setFormMode('add')
-  }
-
-  function selectPlayer(playerId) {
-    setSelectedPlayerId(playerId)
-    setFormMode('view')
-  }
-
-  function startEditingPlayer() {
-    if (!selectedPlayer) {
+    if (!confirmDiscardUnsaved('You have unsaved player changes. Do you want to discard them and start a new player?')) {
       return
     }
 
-    setFormData({ ...emptyPlayer, ...selectedPlayer })
-    setFormMode('edit')
+    clearPlayerDraft()
+    setCleanPlayerForm(emptyPlayer, null, 'add', 'New player form ready.')
+  }
+
+  function selectPlayer(playerId) {
+    if (!confirmDiscardUnsaved('You have unsaved player changes. Do you want to discard them and view another player?')) {
+      return
+    }
+
+    clearPlayerDraft()
+    setCleanPlayerForm(emptyPlayer, playerId, 'view', '')
+  }
+
+  function startEditingPlayer() {
+    if (!selectedPlayer || !confirmDiscardUnsaved('You have unsaved player changes. Do you want to discard them and edit this player?')) {
+      return
+    }
+
+    clearPlayerDraft()
+    setCleanPlayerForm(getPlayerForForm(selectedPlayer), selectedPlayer.id, 'edit', '')
+  }
+
+  function discardDraft() {
+    const shouldDiscard = window.confirm('Discard the current unsaved player draft?')
+
+    if (!shouldDiscard) {
+      return
+    }
+
+    clearPlayerDraft()
+
+    if (selectedPlayer) {
+      setCleanPlayerForm(emptyPlayer, selectedPlayer.id, 'view', 'Draft discarded. Saved player restored.')
+      return
+    }
+
+    setCleanPlayerForm(emptyPlayer, null, 'add', 'Draft discarded. New player form ready.')
   }
 
   function handleDeletePlayer() {
@@ -100,11 +212,15 @@ function Players({ players, onAddPlayer, onDeletePlayer, onUpdatePlayer }) {
       return
     }
 
+    clearPlayerDraft()
     onDeletePlayer(selectedPlayer.id)
     const nextPlayer = players.find((player) => player.id !== selectedPlayer.id)
-    setSelectedPlayerId(nextPlayer?.id ?? null)
-    setFormData(emptyPlayer)
-    setFormMode(nextPlayer ? 'view' : 'add')
+    setCleanPlayerForm(
+      emptyPlayer,
+      nextPlayer?.id ?? null,
+      nextPlayer ? 'view' : 'add',
+      nextPlayer ? 'Player deleted.' : 'Player deleted. New player form ready.',
+    )
   }
 
   return (
@@ -154,12 +270,15 @@ function Players({ players, onAddPlayer, onDeletePlayer, onUpdatePlayer }) {
         </aside>
 
         <div className="player-main-panel">
+          {(message || draftStatus) && <p className="form-message">{message || draftStatus}</p>}
+
           {(formMode === 'add' || formMode === 'edit') && (
             <PlayerForm
               formData={formData}
               formMode={formMode}
               onCancel={() => setFormMode(selectedPlayer ? 'view' : 'add')}
               onChange={handleChange}
+              onDiscardDraft={discardDraft}
               onSubmit={handleSubmit}
             />
           )}
@@ -185,7 +304,7 @@ function Players({ players, onAddPlayer, onDeletePlayer, onUpdatePlayer }) {
   )
 }
 
-function PlayerForm({ formData, formMode, onCancel, onChange, onSubmit }) {
+function PlayerForm({ formData, formMode, onCancel, onChange, onDiscardDraft, onSubmit }) {
   return (
     <form className="player-form" onSubmit={onSubmit}>
       <div className="form-heading">
@@ -313,6 +432,9 @@ function PlayerForm({ formData, formMode, onCancel, onChange, onSubmit }) {
         </button>
         <button className="secondary-button" type="button" onClick={onCancel}>
           Cancel
+        </button>
+        <button className="secondary-button" type="button" onClick={onDiscardDraft}>
+          Discard Draft
         </button>
       </div>
     </form>
