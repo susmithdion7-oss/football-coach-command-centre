@@ -5,6 +5,7 @@ import './styles.css'
 import './diagram.css'
 import './tacticalBoard.css'
 import './teamWizard.css'
+import './crest.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

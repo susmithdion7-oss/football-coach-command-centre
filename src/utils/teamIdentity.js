@@ -1,5 +1,7 @@
 export const teamIdentityStorageKey = 'teamIdentity'
 
+const acceptedCrestMimeTypes = ['image/png', 'image/jpeg', 'image/webp']
+
 export const defaultTeamIdentity = {
   teamName: 'Your Team',
   clubName: 'Coach Command Centre',
@@ -20,6 +22,7 @@ export const defaultTeamIdentity = {
   homeVenue: '',
   trainingDays: '',
   matchDay: '',
+  teamCrest: null,
   setupCompleted: false,
   createdAt: '',
   updatedAt: '',
@@ -55,6 +58,27 @@ function normaliseColor(value, fallback) {
 
 function normaliseText(value, fallback = '') {
   return typeof value === 'string' ? value : fallback
+}
+
+function normaliseTeamCrest(crest) {
+  if (!crest || typeof crest !== 'object') {
+    return null
+  }
+
+  const dataUrl = typeof crest.dataUrl === 'string' ? crest.dataUrl : ''
+  const mimeType = typeof crest.mimeType === 'string' ? crest.mimeType : ''
+
+  if (!dataUrl.startsWith('data:image/') || !acceptedCrestMimeTypes.includes(mimeType)) {
+    return null
+  }
+
+  return {
+    dataUrl,
+    fileName: normaliseText(crest.fileName, 'team-crest'),
+    mimeType,
+    sizeBytes: Number.isFinite(crest.sizeBytes) ? crest.sizeBytes : 0,
+    updatedAt: normaliseText(crest.updatedAt),
+  }
 }
 
 function hexToRgb(hex) {
@@ -112,6 +136,7 @@ export function normaliseTeamIdentity(identity = {}) {
     homeKitColor: normaliseColor(mergedIdentity.homeKitColor, defaultTeamIdentity.homeKitColor),
     awayKitColor: normaliseColor(mergedIdentity.awayKitColor, defaultTeamIdentity.awayKitColor),
     setupCompleted: Boolean(mergedIdentity.setupCompleted),
+    teamCrest: normaliseTeamCrest(mergedIdentity.teamCrest),
   }
 
   textFields.forEach((fieldName) => {
@@ -154,6 +179,10 @@ export function prepareTeamIdentityForSave(identity, existingIdentity = {}) {
     createdAt: existingIdentity.createdAt || normalisedIdentity.createdAt || now,
     updatedAt: now,
   }
+}
+
+export function getTeamCrest(identity) {
+  return normaliseTeamIdentity(identity).teamCrest
 }
 
 export function getTeamInitials(identity) {
