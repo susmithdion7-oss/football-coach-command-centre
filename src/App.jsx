@@ -8,6 +8,7 @@ import TacticalBoard from './pages/TacticalBoard.jsx'
 import TeamSetup from './pages/TeamSetup.jsx'
 import { getStorageItem, setStorageItem } from './utils/storage.js'
 import {
+  applyTeamTheme,
   getThemeStyle,
   normaliseTeamIdentity,
   prepareTeamIdentityForSave,
@@ -167,6 +168,10 @@ function App() {
     setStorageItem('tacticalBoards', tacticalBoards)
   }, [tacticalBoards])
 
+  useEffect(() => {
+    applyTeamTheme(teamIdentity)
+  }, [teamIdentity])
+
   const pageTitle = pages.find((page) => page.id === activePage)?.label
   const { nextSession, recentPastSession, upcomingSessions } =
     getDashboardSessionSummary(sessions)
@@ -175,6 +180,7 @@ function App() {
   function saveTeamIdentity(nextIdentity) {
     const identityToSave = prepareTeamIdentityForSave(nextIdentity, teamIdentity)
 
+    applyTeamTheme(identityToSave)
     setTeamIdentity(identityToSave)
     setStorageItem(teamIdentityStorageKey, identityToSave)
     setActivePage('dashboard')
