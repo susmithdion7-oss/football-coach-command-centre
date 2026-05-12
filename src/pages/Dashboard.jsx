@@ -5,21 +5,33 @@ function Dashboard({
   recentPastSession,
   sessionCount,
   tacticalBoardCount,
+  teamIdentity,
   upcomingSessions,
 }) {
   const hasUpcomingSessions = upcomingSessions.length > 0
+  const coachName = teamIdentity?.coachName || 'Coach'
+  const teamName = teamIdentity?.teamName || 'your team'
+  const teamGoal = teamIdentity?.teamGoal
+  const teamMotto = teamIdentity?.teamMotto
 
   return (
     <section className="page-stack">
-      <div className="welcome-panel">
+      <div className="welcome-panel team-welcome-panel">
         <div>
-          <p className="section-kicker">Coach-only workspace</p>
-          <h3>Plan the week from one simple place.</h3>
+          <p className="section-kicker">Good to see you, {coachName}</p>
+          <h3>{teamName} Coach HQ is ready.</h3>
           <p>
-            This foundation is ready for the core version 0.1 workflow:
-            players, sessions, a basic tactical board, and later PDF export.
+            Plan the week, track your squad, build sessions, and prepare tactical
+            ideas from one calm team workspace.
           </p>
         </div>
+
+        {(teamGoal || teamMotto) && (
+          <div className="team-dashboard-identity">
+            {teamMotto && <strong>"{teamMotto}"</strong>}
+            {teamGoal && <p>Season goal: {teamGoal}</p>}
+          </div>
+        )}
       </div>
 
       <div className="stats-grid" aria-label="Dashboard summary">
@@ -96,6 +108,9 @@ function Dashboard({
         </button>
         <button type="button" onClick={() => onNavigate('tactics')}>
           Open Tactical Board
+        </button>
+        <button type="button" onClick={() => onNavigate('clubSetup')}>
+          Edit Club Setup
         </button>
       </div>
     </section>

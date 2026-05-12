@@ -4,13 +4,22 @@ import Dashboard from './pages/Dashboard.jsx'
 import Players from './pages/Players.jsx'
 import SessionPlanner from './pages/SessionPlanner.jsx'
 import TacticalBoard from './pages/TacticalBoard.jsx'
+import TeamSetup from './pages/TeamSetup.jsx'
 import { getStorageItem, setStorageItem } from './utils/storage.js'
+import {
+  getTeamInitials,
+  getThemeStyle,
+  normaliseTeamIdentity,
+  prepareTeamIdentityForSave,
+  teamIdentityStorageKey,
+} from './utils/teamIdentity.js'
 
 const pages = [
   { id: 'dashboard', icon: 'HQ', label: 'Dashboard' },
   { id: 'players', icon: 'PL', label: 'Players' },
   { id: 'sessions', icon: 'SP', label: 'Session Planner' },
   { id: 'tactics', icon: 'TB', label: 'Tactical Board' },
+  { id: 'clubSetup', icon: 'ID', label: 'Club Setup' },
 ]
 
 function createRecordId(prefix) {
@@ -117,6 +126,20 @@ function buildCopiedBoardNotes(activity, diagramNotes) {
   return noteSections.join('\n\n')
 }
 
+function getCoachInitials(coachName) {
+  const words = coachName.split(' ').filter(Boolean)
+
+  if (words.length === 0) {
+    return 'CO'
+  }
+
+  if (words.length === 1) {
+    return words[0].slice(0, 2).toUpperCase()
+  }
+
+  return `${words[0][0]}${words[1][0]}`.toUpperCase()
+}
+
 function App() {
   const [activePage, setActivePage] = useState('dashboard')
   const [players, setPlayers] = useState(() => getStorageItem('players', []))
@@ -125,6 +148,9 @@ function App() {
   )
   const [tacticalBoards, setTacticalBoards] = useState(() =>
     getStorageItem('tacticalBoards', []),
+  )
+  const [teamIdentity, setTeamIdentity] = useState(() =>
+    normaliseTeamIdentity(getStorageItem(teamIdentityStorageKey, null)),
   )
   const [activeTacticalBoardId, setActiveTacticalBoardId] = useState(null)
   const [tacticalBoardNotice, setTacticalBoardNotice] = useState('')
@@ -144,6 +170,16 @@ function App() {
   const pageTitle = pages.find((page) => page.id === activePage)?.label
   const { nextSession, recentPastSession, upcomingSessions } =
     getDashboardSessionSummary(sessions)
+  const teamInitials = getTeamInitials(teamIdentity)
+  const themeStyle = getThemeStyle(teamIdentity)
+
+  function saveTeamIdentity(nextIdentity) {
+    const identityToSave = prepareTeamIdentityForSave(nextIdentity, teamIdentity)
+
+    setTeamIdentity(identityToSave)
+    setStorageItem(teamIdentityStorageKey, identityToSave)
+    setActivePage('dashboard')
+  }
 
   function addPlayer(player) {
     const newPlayer = {
@@ -305,15 +341,25 @@ function App() {
     return copiedBoardId
   }
 
+  if (!teamIdentity.setupCompleted) {
+    return (
+      <TeamSetup
+        identity={teamIdentity}
+        isInitialSetup
+        onSave={saveTeamIdentity}
+      />
+    )
+  }
+
   return (
-    <div className="app-shell">
+    <div className="app-shell" style={themeStyle}>
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark">AO</div>
+          <div className="brand-mark">{teamInitials}</div>
           <div>
             <p className="brand-kicker">Coach HQ</p>
-            <h1>AFC Oldham</h1>
-            <span>2024/25 Season</span>
+            <h1>{teamIdentity.teamName}</h1>
+            <span>{teamIdentity.seasonName}</span>
           </div>
         </div>
 
@@ -334,15 +380,15 @@ function App() {
         <div className="sidebar-footer">
           <div className="season-card">
             <span>Current season</span>
-            <strong>2024/25</strong>
-            <p>Grassroots performance workspace</p>
+            <strong>{teamIdentity.seasonName}</strong>
+            <p>{teamIdentity.ageGroup || teamIdentity.teamType}</p>
           </div>
 
           <div className="coach-card">
-            <div className="coach-avatar">CO</div>
+            <div className="coach-avatar">{getCoachInitials(teamIdentity.coachName)}</div>
             <div>
-              <span>Coach workspace</span>
-              <strong>Local browser save</strong>
+              <span>{teamIdentity.coachRole}</span>
+              <strong>{teamIdentity.coachName}</strong>
             </div>
           </div>
 
@@ -355,15 +401,15 @@ function App() {
       <main className="main-content">
         <header className="topbar">
           <div className="topbar-title">
-            <p className="section-kicker">AFC Oldham Command Centre</p>
+            <p className="section-kicker">{teamIdentity.clubName || 'Coach Command Centre'}</p>
             <h2>{pageTitle}</h2>
-            <span>2024/25 Season</span>
+            <span>{teamIdentity.teamName} - {teamIdentity.seasonName}</span>
           </div>
 
           <div className="topbar-meta" aria-label="Workspace summary">
             <div className="fixture-pill">
               <span>Next fixture</span>
-              <strong>Sat 10:30</strong>
+              <strong>{teamIdentity.matchDay || 'Add match day'}</strong>
             </div>
             <button className="primary-button" type="button" onClick={() => setActivePage('sessions')}>
               Create Session
@@ -372,7 +418,7 @@ function App() {
               New Announcement
             </button>
             <span className="notification-dot" aria-label="Notifications">0</span>
-            <span className="profile-chip">Coach</span>
+            <span className="profile-chip">{teamIdentity.coachName}</span>
           </div>
         </header>
 
@@ -385,6 +431,7 @@ function App() {
               recentPastSession={recentPastSession}
               sessionCount={sessions.length}
               tacticalBoardCount={tacticalBoards.length}
+              teamIdentity={teamIdentity}
               upcomingSessions={upcomingSessions}
             />
           )}
@@ -418,6 +465,9 @@ function App() {
               onSelectBoard={setActiveTacticalBoardId}
               onUpdateBoard={updateTacticalBoard}
             />
+          )}
+          {activePage === 'clubSetup' && (
+            <TeamSetup identity={teamIdentity} onSave={saveTeamIdentity} />
           )}
         </div>
       </main>
