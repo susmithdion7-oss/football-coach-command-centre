@@ -221,3 +221,14 @@ export function getThemeStyle(identity) {
     '--club-on-secondary': secondaryLuminance > 0.58 ? '#171717' : '#ffffff',
   }
 }
+
+export function applyTeamTheme(identity) {
+  if (typeof document === 'undefined') {
+    return
+  }
+
+  const themeStyle = getThemeStyle(identity)
+  Object.entries(themeStyle).forEach(([propertyName, propertyValue]) => {
+    document.documentElement.style.setProperty(propertyName, propertyValue)
+  })
+}

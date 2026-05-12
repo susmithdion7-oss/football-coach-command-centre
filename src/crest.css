@@ -1,4 +1,10 @@
 /* Team crest upload and display */
+body {
+  background:
+    radial-gradient(circle at top right, var(--club-primary-soft), transparent 34rem),
+    var(--club-bg);
+}
+
 .team-badge {
   display: grid;
   place-items: center;
