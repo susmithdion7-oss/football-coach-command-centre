@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import DiagramEditor from '../components/DiagramEditor.jsx'
 import DiagramPreview, { createEmptyDiagram, normaliseDiagram } from '../components/DiagramPreview.jsx'
+import { getStorageItem, removeStorageItem, setStorageItem } from '../utils/storage.js'
 
 const gameMoments = [
   'In possession',
@@ -109,6 +110,8 @@ const activityTemplates = [
   'Reflection / cool-down',
 ]
 
+const sessionDraftKey = 'sessionDraft'
+
 function createEmptyActivity(name) {
   return {
     name,
@@ -141,6 +144,58 @@ const emptySession = {
   sessionType: 'Technical practice',
   coachingStyle: 'Guided discovery',
   activities: activityTemplates.map(createEmptyActivity),
+}
+
+const emptySessionSnapshot = JSON.stringify(emptySession)
+
+function getSessionForForm(session = {}) {
+  return {
+    ...emptySession,
+    ...session,
+    equipmentAvailable: session.equipmentAvailable || [],
+    topicTags: session.topicTags || [],
+    activities: activityTemplates.map((activityName, index) => {
+      const savedActivity = session.activities?.[index] || {}
+      const activityTitle = savedActivity.name || activityName
+
+      return {
+        ...createEmptyActivity(activityName),
+        ...savedActivity,
+        name: activityTitle,
+        diagram: normaliseDiagram(savedActivity.diagram, `${activityTitle} diagram`),
+      }
+    }),
+  }
+}
+
+function getSessionSnapshot(session) {
+  return JSON.stringify(getSessionForForm(session))
+}
+
+function getDraftInitialState(sessions) {
+  const draft = getStorageItem(sessionDraftKey, null)
+
+  if (draft?.formData) {
+    const restoredFormData = getSessionForForm(draft.formData)
+    const restoredSnapshot = getSessionSnapshot(restoredFormData)
+    const savedSnapshot = draft.savedSnapshot || emptySessionSnapshot
+
+    if (restoredSnapshot !== emptySessionSnapshot || draft.selectedSessionId) {
+      return {
+        formData: restoredFormData,
+        restored: true,
+        savedSnapshot,
+        selectedSessionId: draft.selectedSessionId ?? null,
+      }
+    }
+  }
+
+  return {
+    formData: emptySession,
+    restored: false,
+    savedSnapshot: emptySessionSnapshot,
+    selectedSessionId: sessions[0]?.id ?? null,
+  }
 }
 
 function parseSessionDate(session) {
@@ -192,60 +247,102 @@ function SessionPlanner({
   onUpdateSession,
   sessions,
 }) {
-  const [selectedSessionId, setSelectedSessionId] = useState(sessions[0]?.id ?? null)
-  const [formData, setFormData] = useState(emptySession)
-  const [message, setMessage] = useState('')
+  const [initialDraftState] = useState(() => getDraftInitialState(sessions))
+  const [selectedSessionId, setSelectedSessionId] = useState(initialDraftState.selectedSessionId)
+  const [formData, setFormData] = useState(initialDraftState.formData)
+  const [message, setMessage] = useState(initialDraftState.restored ? 'Draft restored.' : '')
+  const [draftStatus, setDraftStatus] = useState(initialDraftState.restored ? 'Unsaved changes' : '')
+  const savedSnapshotRef = useRef(initialDraftState.savedSnapshot)
   const sortedSessions = useMemo(() => sortSessionsByDate(sessions), [sessions])
+  const currentSnapshot = getSessionSnapshot(formData)
+  const hasUnsavedChanges =
+    currentSnapshot !== savedSnapshotRef.current &&
+    (currentSnapshot !== emptySessionSnapshot || Boolean(selectedSessionId))
 
   const selectedSession = useMemo(
     () => sessions.find((session) => session.id === selectedSessionId),
     [sessions, selectedSessionId],
   )
 
-  function getSessionForForm(session) {
-    return {
-      ...emptySession,
-      ...session,
-      equipmentAvailable: session.equipmentAvailable || [],
-      topicTags: session.topicTags || [],
-      activities: activityTemplates.map((activityName, index) => {
-        const savedActivity = session.activities?.[index] || {}
-        const activityTitle = savedActivity.name || activityName
-
-        return {
-          ...createEmptyActivity(activityName),
-          ...savedActivity,
-          name: activityTitle,
-          diagram: normaliseDiagram(savedActivity.diagram, `${activityTitle} diagram`),
-        }
-      }),
+  useEffect(() => {
+    if (!hasUnsavedChanges) {
+      return
     }
+
+    setStorageItem(sessionDraftKey, {
+      formData,
+      lastDraftSavedAt: new Date().toISOString(),
+      savedSnapshot: savedSnapshotRef.current,
+      selectedSessionId,
+    })
+    setDraftStatus('Draft saved automatically')
+  }, [formData, hasUnsavedChanges, selectedSessionId])
+
+  function confirmDiscardUnsaved(messageText) {
+    return !hasUnsavedChanges || window.confirm(messageText)
+  }
+
+  function setCleanForm(nextFormData, nextSelectedSessionId, nextMessage) {
+    const normalisedForm = getSessionForForm(nextFormData)
+    savedSnapshotRef.current = getSessionSnapshot(normalisedForm)
+    setSelectedSessionId(nextSelectedSessionId)
+    setFormData(normalisedForm)
+    setDraftStatus('')
+    setMessage(nextMessage)
+  }
+
+  function clearSessionDraft() {
+    removeStorageItem(sessionDraftKey)
+    setDraftStatus('')
   }
 
   function startNewSession() {
-    setSelectedSessionId(null)
-    setFormData(emptySession)
-    setMessage('New session form ready.')
+    if (!confirmDiscardUnsaved('You have unsaved changes. Do you want to discard them and start a new session?')) {
+      return
+    }
+
+    clearSessionDraft()
+    setCleanForm(emptySession, null, 'New session form ready.')
+  }
+
+  function discardDraft() {
+    const shouldDiscard = window.confirm('Discard the current unsaved session draft?')
+
+    if (!shouldDiscard) {
+      return
+    }
+
+    clearSessionDraft()
+
+    if (selectedSession) {
+      setCleanForm(selectedSession, selectedSession.id, 'Draft discarded. Saved session restored.')
+      return
+    }
+
+    setCleanForm(emptySession, null, 'Draft discarded. New session form ready.')
   }
 
   function selectSession(sessionId) {
     const session = sessions.find((savedSession) => savedSession.id === sessionId)
 
-    if (!session) {
+    if (!session || !confirmDiscardUnsaved('You have unsaved changes. Do you want to discard them and open another session?')) {
       return
     }
 
-    setSelectedSessionId(sessionId)
-    setFormData(getSessionForForm(session))
-    setMessage('')
+    clearSessionDraft()
+    setCleanForm(session, sessionId, '')
   }
 
   function handleFieldChange(event) {
     const { name, value } = event.target
+    setMessage('')
+    setDraftStatus('Unsaved changes')
     setFormData((currentData) => ({ ...currentData, [name]: value }))
   }
 
   function toggleListValue(fieldName, value) {
+    setMessage('')
+    setDraftStatus('Unsaved changes')
     setFormData((currentData) => {
       const currentValues = currentData[fieldName]
       const nextValues = currentValues.includes(value)
@@ -257,6 +354,8 @@ function SessionPlanner({
   }
 
   function updateActivity(index, fieldName, value) {
+    setMessage('')
+    setDraftStatus('Unsaved changes')
     setFormData((currentData) => ({
       ...currentData,
       activities: currentData.activities.map((activity, activityIndex) =>
@@ -303,13 +402,16 @@ function SessionPlanner({
 
     if (selectedSession) {
       onUpdateSession(selectedSession.id, sessionToSave)
-      setMessage('Session updated and saved locally.')
+      clearSessionDraft()
+      setCleanForm(sessionToSave, selectedSession.id, 'Session updated and saved locally.')
+      setDraftStatus('Saved')
       return
     }
 
     const newSessionId = onAddSession(sessionToSave)
-    setSelectedSessionId(newSessionId)
-    setMessage('Session created and saved locally.')
+    clearSessionDraft()
+    setCleanForm(sessionToSave, newSessionId, 'Session created and saved locally.')
+    setDraftStatus('Saved')
   }
 
   function handleDelete() {
@@ -323,15 +425,18 @@ function SessionPlanner({
       return
     }
 
+    clearSessionDraft()
     onDeleteSession(selectedSession.id)
     const nextSession = sortedSessions.find((session) => session.id !== selectedSession.id)
-    setSelectedSessionId(nextSession?.id ?? null)
-    setFormData(nextSession ? getSessionForForm(nextSession) : emptySession)
-    setMessage(nextSession ? 'Session deleted.' : 'Session deleted. New session form ready.')
+    setCleanForm(
+      nextSession || emptySession,
+      nextSession?.id ?? null,
+      nextSession ? 'Session deleted.' : 'Session deleted. New session form ready.',
+    )
   }
 
   function handleDuplicate() {
-    if (!selectedSession) {
+    if (!selectedSession || !confirmDiscardUnsaved('You have unsaved changes. Do you want to discard them and duplicate this session?')) {
       return
     }
 
@@ -345,9 +450,8 @@ function SessionPlanner({
         status: 'Draft',
       }
 
-      setSelectedSessionId(duplicateId)
-      setFormData(getSessionForForm(copiedSession))
-      setMessage('Session duplicated as a new draft.')
+      clearSessionDraft()
+      setCleanForm(copiedSession, duplicateId, 'Session duplicated as a new draft.')
     }
   }
 
@@ -398,7 +502,7 @@ function SessionPlanner({
         </aside>
 
         <form className="session-form" onSubmit={handleSave}>
-          {message && <p className="form-message">{message}</p>}
+          {(message || draftStatus) && <p className="form-message">{message || draftStatus}</p>}
 
           <FormSection kicker="Overview" title="Session details">
             <div className="form-grid">
@@ -574,6 +678,9 @@ function SessionPlanner({
             </button>
             <button className="secondary-button" type="button" onClick={startNewSession}>
               New Session
+            </button>
+            <button className="secondary-button" type="button" onClick={discardDraft}>
+              Discard Draft
             </button>
             <button
               className="secondary-button"

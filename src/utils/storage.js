@@ -17,3 +17,7 @@ export function getStorageItem(key, fallbackValue) {
 export function setStorageItem(key, value) {
   window.localStorage.setItem(`${appPrefix}:${key}`, JSON.stringify(value))
 }
+
+export function removeStorageItem(key) {
+  window.localStorage.removeItem(`${appPrefix}:${key}`)
+}
