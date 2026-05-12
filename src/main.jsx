@@ -7,6 +7,7 @@ import './tacticalBoard.css'
 import './teamWizard.css'
 import './crest.css'
 import './dashboard.css'
+import './playersHub.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
