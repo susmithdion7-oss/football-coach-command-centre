@@ -94,7 +94,7 @@ function getDashboardSessionSummary(sessions) {
   )
   const upcomingSessions = datedSessions
     .filter((session) => parseSessionDate(session) >= today)
-    .slice(0, 3)
+    .slice(0, 4)
   const recentPastSession = [...datedSessions]
     .reverse()
     .find((session) => parseSessionDate(session) < today)
@@ -181,6 +181,7 @@ function App() {
   const { nextSession, recentPastSession, upcomingSessions } =
     getDashboardSessionSummary(sessions)
   const themeStyle = getThemeStyle(teamIdentity)
+  const isDashboardPage = activePage === 'dashboard'
 
   function saveTeamIdentity(nextIdentity) {
     const identityToSave = prepareTeamIdentityForSave(nextIdentity, teamIdentity)
@@ -422,8 +423,8 @@ function App() {
         </div>
       </aside>
 
-      <main className="main-content">
-        <header className="topbar">
+      <main className={isDashboardPage ? 'main-content dashboard-main-content' : 'main-content'}>
+        <header className={isDashboardPage ? 'topbar dashboard-topbar' : 'topbar'}>
           <div className="topbar-title topbar-team-title">
             <TeamBadge identity={teamIdentity} size="header" label={`${teamIdentity.teamName} crest`} />
             <div>
@@ -449,7 +450,7 @@ function App() {
           </div>
         </header>
 
-        <div className="content-frame">
+        <div className={isDashboardPage ? 'content-frame dashboard-content-frame' : 'content-frame'}>
           {activePage === 'dashboard' && (
             <Dashboard
               nextSession={nextSession}
