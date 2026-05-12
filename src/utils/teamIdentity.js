@@ -25,12 +25,36 @@ export const defaultTeamIdentity = {
   updatedAt: '',
 }
 
+const textFields = [
+  'teamName',
+  'clubName',
+  'seasonName',
+  'ageGroup',
+  'teamType',
+  'playingStyle',
+  'teamGoal',
+  'coachName',
+  'coachRole',
+  'coachGoal',
+  'teamMotto',
+  'squadSizeTarget',
+  'homeVenue',
+  'trainingDays',
+  'matchDay',
+  'createdAt',
+  'updatedAt',
+]
+
 function isValidHexColor(value) {
   return /^#[0-9A-F]{6}$/i.test(value || '')
 }
 
 function normaliseColor(value, fallback) {
   return isValidHexColor(value) ? value : fallback
+}
+
+function normaliseText(value, fallback = '') {
+  return typeof value === 'string' ? value : fallback
 }
 
 function hexToRgb(hex) {
@@ -76,18 +100,33 @@ function getSoftColor(hex) {
 }
 
 export function normaliseTeamIdentity(identity = {}) {
-  return {
+  const mergedIdentity = {
     ...defaultTeamIdentity,
     ...(identity || {}),
-    teamName: identity?.teamName || defaultTeamIdentity.teamName,
-    clubName: identity?.clubName || defaultTeamIdentity.clubName,
-    seasonName: identity?.seasonName || defaultTeamIdentity.seasonName,
-    primaryColor: normaliseColor(identity?.primaryColor, defaultTeamIdentity.primaryColor),
-    secondaryColor: normaliseColor(identity?.secondaryColor, defaultTeamIdentity.secondaryColor),
-    homeKitColor: normaliseColor(identity?.homeKitColor, defaultTeamIdentity.homeKitColor),
-    awayKitColor: normaliseColor(identity?.awayKitColor, defaultTeamIdentity.awayKitColor),
-    coachName: identity?.coachName || defaultTeamIdentity.coachName,
   }
+
+  const normalisedIdentity = {
+    ...mergedIdentity,
+    primaryColor: normaliseColor(mergedIdentity.primaryColor, defaultTeamIdentity.primaryColor),
+    secondaryColor: normaliseColor(mergedIdentity.secondaryColor, defaultTeamIdentity.secondaryColor),
+    homeKitColor: normaliseColor(mergedIdentity.homeKitColor, defaultTeamIdentity.homeKitColor),
+    awayKitColor: normaliseColor(mergedIdentity.awayKitColor, defaultTeamIdentity.awayKitColor),
+    setupCompleted: Boolean(mergedIdentity.setupCompleted),
+  }
+
+  textFields.forEach((fieldName) => {
+    normalisedIdentity[fieldName] = normaliseText(
+      mergedIdentity[fieldName],
+      defaultTeamIdentity[fieldName],
+    )
+  })
+
+  normalisedIdentity.teamName = normalisedIdentity.teamName || defaultTeamIdentity.teamName
+  normalisedIdentity.clubName = normalisedIdentity.clubName || defaultTeamIdentity.clubName
+  normalisedIdentity.seasonName = normalisedIdentity.seasonName || defaultTeamIdentity.seasonName
+  normalisedIdentity.coachName = normalisedIdentity.coachName || defaultTeamIdentity.coachName
+
+  return normalisedIdentity
 }
 
 export function prepareTeamIdentityForSave(identity, existingIdentity = {}) {
