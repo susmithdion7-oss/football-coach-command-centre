@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { normaliseDiagram } from './components/DiagramPreview.jsx'
+import TeamBadge from './components/TeamBadge.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import Players from './pages/Players.jsx'
 import SessionPlanner from './pages/SessionPlanner.jsx'
@@ -7,7 +8,6 @@ import TacticalBoard from './pages/TacticalBoard.jsx'
 import TeamSetup from './pages/TeamSetup.jsx'
 import { getStorageItem, setStorageItem } from './utils/storage.js'
 import {
-  getTeamInitials,
   getThemeStyle,
   normaliseTeamIdentity,
   prepareTeamIdentityForSave,
@@ -170,7 +170,6 @@ function App() {
   const pageTitle = pages.find((page) => page.id === activePage)?.label
   const { nextSession, recentPastSession, upcomingSessions } =
     getDashboardSessionSummary(sessions)
-  const teamInitials = getTeamInitials(teamIdentity)
   const themeStyle = getThemeStyle(teamIdentity)
 
   function saveTeamIdentity(nextIdentity) {
@@ -355,7 +354,7 @@ function App() {
     <div className="app-shell" style={themeStyle}>
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark">{teamInitials}</div>
+          <TeamBadge identity={teamIdentity} size="sidebar" className="brand-mark" label={`${teamIdentity.teamName} crest`} />
           <div>
             <p className="brand-kicker">Coach HQ</p>
             <h1>{teamIdentity.teamName}</h1>
@@ -400,10 +399,13 @@ function App() {
 
       <main className="main-content">
         <header className="topbar">
-          <div className="topbar-title">
-            <p className="section-kicker">{teamIdentity.clubName || 'Coach Command Centre'}</p>
-            <h2>{pageTitle}</h2>
-            <span>{teamIdentity.teamName} - {teamIdentity.seasonName}</span>
+          <div className="topbar-title topbar-team-title">
+            <TeamBadge identity={teamIdentity} size="header" label={`${teamIdentity.teamName} crest`} />
+            <div>
+              <p className="section-kicker">{teamIdentity.clubName || 'Coach Command Centre'}</p>
+              <h2>{pageTitle}</h2>
+              <span>{teamIdentity.teamName} - {teamIdentity.seasonName}</span>
+            </div>
           </div>
 
           <div className="topbar-meta" aria-label="Workspace summary">
