@@ -4,6 +4,7 @@ import App from './App.jsx'
 import './styles.css'
 import './diagram.css'
 import './tacticalBoard.css'
+import './teamWizard.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
