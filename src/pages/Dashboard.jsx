@@ -18,24 +18,6 @@ function formatDisplayDate(dateValue) {
   }
 }
 
-function formatFriendlyDate(dateValue) {
-  if (!dateValue) {
-    return 'Date to be confirmed'
-  }
-
-  const date = new Date(`${dateValue}T00:00:00`)
-
-  if (Number.isNaN(date.getTime())) {
-    return 'Date to be confirmed'
-  }
-
-  return new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  }).format(date)
-}
-
 function formatUpdatedDate(dateValue) {
   if (!dateValue) {
     return 'Not saved yet'
@@ -87,6 +69,7 @@ function Dashboard({
   nextSession,
   onNavigate,
   playerCount,
+  players = [],
   recentPastSession,
   sessionCount,
   tacticalBoardCount,
@@ -102,9 +85,7 @@ function Dashboard({
   const teamMotto = teamIdentity?.teamMotto
   const playingStyle = teamIdentity?.playingStyle || 'Balanced'
   const latestBoard = getLatestBoard(tacticalBoards)
-  const developmentPlayers = getDevelopmentPlayers([])
-  const realDevelopmentPlayers = getDevelopmentPlayers(arguments[0]?.players || [])
-  const visibleDevelopmentPlayers = realDevelopmentPlayers.length > 0 ? realDevelopmentPlayers : developmentPlayers
+  const visibleDevelopmentPlayers = getDevelopmentPlayers(players)
   const nextSessionDate = formatDisplayDate(nextSession?.date)
   const nextMatchLabel = teamIdentity?.matchDay || 'Match day TBC'
 
