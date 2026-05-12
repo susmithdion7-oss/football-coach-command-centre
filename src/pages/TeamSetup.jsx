@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
+import TeamBadge from '../components/TeamBadge.jsx'
 import { setStorageItem } from '../utils/storage.js'
 import {
-  getTeamInitials,
   getThemeStyle,
   normaliseTeamIdentity,
   teamIdentityStorageKey,
@@ -60,13 +60,86 @@ const setupSteps = [
 ]
 
 const editSteps = setupSteps.filter((step) => step.id !== 'welcome')
+const acceptedCrestMimeTypes = ['image/png', 'image/jpeg', 'image/webp']
+const maxCrestFileSizeBytes = 2 * 1024 * 1024
+const maxCrestDimension = 512
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = () => reject(new Error('The image could not be read. Please try another file.'))
+    reader.readAsDataURL(file)
+  })
+}
+
+function loadImage(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new Image()
+    image.onload = () => resolve(image)
+    image.onerror = () => reject(new Error('The image could not be opened. Please try another PNG, JPG or WebP file.'))
+    image.src = dataUrl
+  })
+}
+
+function canvasToBlob(canvas, mimeType, quality) {
+  return new Promise((resolve) => {
+    canvas.toBlob(resolve, mimeType, quality)
+  })
+}
+
+async function blobToDataUrl(blob) {
+  return readFileAsDataUrl(blob)
+}
+
+async function processCrestFile(file) {
+  if (!acceptedCrestMimeTypes.includes(file.type)) {
+    throw new Error('Please upload a PNG, JPG or WebP image.')
+  }
+
+  if (file.size > maxCrestFileSizeBytes) {
+    throw new Error('Please choose an image under 2MB.')
+  }
+
+  const originalDataUrl = await readFileAsDataUrl(file)
+  const image = await loadImage(originalDataUrl)
+  const scale = Math.min(1, maxCrestDimension / Math.max(image.width, image.height))
+  const width = Math.max(1, Math.round(image.width * scale))
+  const height = Math.max(1, Math.round(image.height * scale))
+  const canvas = document.createElement('canvas')
+  const context = canvas.getContext('2d')
+
+  canvas.width = width
+  canvas.height = height
+  context.drawImage(image, 0, 0, width, height)
+
+  const compressedBlob = await canvasToBlob(canvas, 'image/webp', 0.86)
+
+  if (!compressedBlob) {
+    return {
+      dataUrl: canvas.toDataURL('image/jpeg', 0.86),
+      fileName: file.name,
+      mimeType: 'image/jpeg',
+      sizeBytes: file.size,
+      updatedAt: new Date().toISOString(),
+    }
+  }
+
+  return {
+    dataUrl: await blobToDataUrl(compressedBlob),
+    fileName: file.name,
+    mimeType: compressedBlob.type || 'image/webp',
+    sizeBytes: compressedBlob.size,
+    updatedAt: new Date().toISOString(),
+  }
+}
 
 function TeamSetup({ identity, isInitialSetup = false, onSave }) {
   const [formData, setFormData] = useState(() => normaliseTeamIdentity(identity))
   const [currentStepIndex, setCurrentStepIndex] = useState(0)
   const [message, setMessage] = useState('')
+  const [crestMessage, setCrestMessage] = useState('')
   const previewStyle = useMemo(() => getThemeStyle(formData), [formData])
-  const initials = getTeamInitials(formData)
   const steps = isInitialSetup ? setupSteps : editSteps
   const currentStep = steps[currentStepIndex]
   const isFirstStep = currentStepIndex === 0
@@ -76,6 +149,7 @@ function TeamSetup({ identity, isInitialSetup = false, onSave }) {
     setFormData(normaliseTeamIdentity(identity))
     setCurrentStepIndex(0)
     setMessage('')
+    setCrestMessage('')
   }, [identity, isInitialSetup])
 
   useEffect(() => {
@@ -99,6 +173,30 @@ function TeamSetup({ identity, isInitialSetup = false, onSave }) {
   function updateColour(fieldName, value) {
     setMessage('')
     setFormData((currentData) => ({ ...currentData, [fieldName]: value }))
+  }
+
+  async function handleCrestUpload(event) {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+
+    if (!file) {
+      return
+    }
+
+    try {
+      const processedCrest = await processCrestFile(file)
+      setMessage('')
+      setCrestMessage('Crest ready to save.')
+      setFormData((currentData) => ({ ...currentData, teamCrest: processedCrest }))
+    } catch (error) {
+      setCrestMessage(error.message)
+    }
+  }
+
+  function removeCrest() {
+    setMessage('')
+    setCrestMessage('Crest removed. Save to keep this change.')
+    setFormData((currentData) => ({ ...currentData, teamCrest: null }))
   }
 
   function validateRequiredFields() {
@@ -226,13 +324,12 @@ function TeamSetup({ identity, isInitialSetup = false, onSave }) {
                   </label>
                 </div>
 
-                <div className="crest-placeholder-card">
-                  <div className="team-preview-crest">{initials}</div>
-                  <div>
-                    <strong>Team crest placeholder</strong>
-                    <p>Logo upload will be added later. For now, your team initials become your HQ badge.</p>
-                  </div>
-                </div>
+                <CrestUploadCard
+                  crestMessage={crestMessage}
+                  formData={formData}
+                  onRemove={removeCrest}
+                  onUpload={handleCrestUpload}
+                />
               </WizardCard>
             )}
 
@@ -403,7 +500,7 @@ function TeamSetup({ identity, isInitialSetup = false, onSave }) {
                 title={isInitialSetup ? 'Your Team HQ is ready to create.' : 'Review your Team HQ changes.'}
                 description="Check the identity, colours, coach card, and season direction before saving."
               >
-                <FinalPreview formData={formData} initials={initials} />
+                <FinalPreview formData={formData} />
               </WizardCard>
             )}
 
@@ -433,7 +530,7 @@ function TeamSetup({ identity, isInitialSetup = false, onSave }) {
             )}
           </form>
 
-          <LivePreview formData={formData} initials={initials} />
+          <LivePreview formData={formData} />
         </div>
       </div>
     </section>
@@ -490,6 +587,43 @@ function WizardCard({ children, description, eyebrow, title }) {
       </div>
       {children}
     </section>
+  )
+}
+
+function CrestUploadCard({ crestMessage, formData, onRemove, onUpload }) {
+  const hasCrest = Boolean(formData.teamCrest?.dataUrl)
+
+  return (
+    <div className="crest-upload-card">
+      <div className="crest-upload-preview">
+        <TeamBadge identity={formData} size="large" label={`${formData.teamName || 'Team'} crest`} />
+        <div>
+          <strong>{hasCrest ? 'Team crest uploaded' : 'No crest uploaded yet'}</strong>
+          <p>Upload your team crest. This stays on this browser for now.</p>
+          <small>PNG, JPG or WebP. Max 2MB. Images are resized before saving.</small>
+        </div>
+      </div>
+
+      <div className="crest-upload-actions">
+        <label className="secondary-button crest-upload-button" htmlFor="team-crest-upload">
+          {hasCrest ? 'Replace crest' : 'Upload crest'}
+        </label>
+        <input
+          accept="image/png,image/jpeg,image/webp"
+          className="crest-file-input"
+          id="team-crest-upload"
+          onChange={onUpload}
+          type="file"
+        />
+        {hasCrest && (
+          <button className="danger-button" onClick={onRemove} type="button">
+            Remove crest
+          </button>
+        )}
+      </div>
+
+      {crestMessage && <p className="crest-upload-message">{crestMessage}</p>}
+    </div>
   )
 }
 
@@ -556,11 +690,11 @@ function CoachPreview({ formData }) {
   )
 }
 
-function FinalPreview({ formData, initials }) {
+function FinalPreview({ formData }) {
   return (
     <div className="final-preview-grid">
       <div className="final-team-card">
-        <div className="team-preview-crest">{initials}</div>
+        <TeamBadge identity={formData} size="large" label={`${formData.teamName || 'Team'} crest`} />
         <div>
           <span>{formData.clubName || 'Club'}</span>
           <strong>{formData.teamName || 'Your Team'}</strong>
@@ -591,12 +725,12 @@ function PreviewItem({ label, value }) {
   )
 }
 
-function LivePreview({ formData, initials }) {
+function LivePreview({ formData }) {
   return (
     <aside className="team-live-preview" aria-label="Live Team HQ preview">
       <div className="team-preview-card">
         <div className="team-preview-topline">
-          <div className="team-preview-crest">{initials}</div>
+          <TeamBadge identity={formData} size="large" label={`${formData.teamName || 'Team'} crest`} />
           <div>
             <span>{formData.clubName || 'Club'}</span>
             <strong>{formData.teamName || 'Your Team'}</strong>
