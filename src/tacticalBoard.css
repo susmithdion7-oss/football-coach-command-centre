@@ -1,18 +1,18 @@
 .tactical-board-page {
   display: grid;
-  gap: 14px;
+  gap: 16px;
 }
 
 .tactical-workstation-toolbar {
   align-items: end;
-  background: #ffffff;
-  border: 1px solid #d7e1da;
-  border-radius: 8px;
-  box-shadow: 0 18px 42px rgba(15, 43, 27, 0.08);
+  background: var(--club-surface);
+  border: 1px solid var(--club-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--club-shadow);
   display: grid;
   gap: 12px;
   grid-template-columns: minmax(220px, 1.1fr) minmax(170px, 0.7fr) minmax(170px, 0.7fr) minmax(340px, 1.8fr);
-  padding: 14px;
+  padding: 16px;
   position: sticky;
   top: 0;
   z-index: 4;
@@ -20,9 +20,9 @@
 
 .tactical-workstation-toolbar label,
 .tactical-notes-field {
-  color: #355543;
+  color: #374151;
   display: grid;
-  font-weight: 800;
+  font-weight: 850;
   gap: 7px;
 }
 
@@ -39,9 +39,9 @@
 }
 
 .tactical-object-toolbar {
-  background: #ffffff;
-  border: 1px solid #d7e1da;
-  border-radius: 8px;
+  background: var(--club-surface);
+  border: 1px solid var(--club-border);
+  border-radius: var(--radius-lg);
   padding: 10px;
   position: sticky;
   top: 94px;
@@ -49,15 +49,15 @@
 }
 
 .tactical-object-toolbar button {
-  background: #eef4f0;
-  border-radius: 8px;
-  color: #214530;
+  background: var(--club-surface-soft);
+  border-radius: var(--radius-md);
+  color: var(--club-text);
   cursor: pointer;
-  font-weight: 800;
+  font-weight: 850;
 }
 
 .tactical-object-toolbar button:hover {
-  background: #dbe8df;
+  background: var(--club-primary-soft);
 }
 
 .tactical-message {
@@ -67,17 +67,17 @@
 .tactical-workstation-layout {
   align-items: start;
   display: grid;
-  gap: 14px;
+  gap: 16px;
   grid-template-columns: minmax(230px, 280px) minmax(0, 1fr) minmax(260px, 320px);
 }
 
 .tactical-saved-panel,
 .tactical-centre-panel,
 .tactical-inspector-panel {
-  background: #ffffff;
-  border: 1px solid #d7e1da;
-  border-radius: 8px;
-  box-shadow: 0 18px 42px rgba(15, 43, 27, 0.08);
+  background: var(--club-surface);
+  border: 1px solid var(--club-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--club-shadow);
 }
 
 .tactical-saved-panel,
@@ -86,7 +86,7 @@
   gap: 14px;
   max-height: calc(100vh - 220px);
   overflow: auto;
-  padding: 16px;
+  padding: 18px;
   position: sticky;
   top: 94px;
 }
@@ -95,7 +95,7 @@
   display: grid;
   gap: 12px;
   min-width: 0;
-  padding: 14px;
+  padding: 16px;
 }
 
 .tactical-new-board-button {
@@ -108,32 +108,32 @@
 }
 
 .tactical-board-list-item {
-  background: #f7fbf8;
-  border: 1px solid #d7e1da;
-  border-radius: 8px;
-  color: #17211b;
+  background: var(--club-surface-soft);
+  border: 1px solid var(--club-border);
+  border-radius: var(--radius-lg);
+  color: var(--club-text);
   cursor: pointer;
   display: grid;
   gap: 4px;
-  padding: 12px;
+  padding: 13px;
   text-align: left;
   width: 100%;
 }
 
 .tactical-board-list-item:hover,
 .tactical-board-list-item.active {
-  background: #e2eee6;
-  border-color: #9fc3ad;
+  background: var(--club-primary-soft);
+  border-color: rgba(249, 115, 22, 0.34);
 }
 
 .tactical-board-list-item small {
-  color: #5f7669;
+  color: var(--club-muted);
 }
 
 .tactical-board-list-item span {
-  color: #214530;
+  color: var(--club-primary-dark);
   font-size: 0.85rem;
-  font-weight: 800;
+  font-weight: 900;
 }
 
 .tactical-board-pitch {
@@ -150,13 +150,13 @@
 }
 
 .tactical-presentation-mode {
-  background: #ffffff;
-  border: 1px solid #d7e1da;
-  border-radius: 8px;
-  box-shadow: 0 18px 42px rgba(15, 43, 27, 0.08);
+  background: var(--club-surface);
+  border: 1px solid var(--club-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--club-shadow);
   display: grid;
   gap: 18px;
-  padding: 18px;
+  padding: 20px;
 }
 
 .tactical-presentation-header {
@@ -172,7 +172,7 @@
 }
 
 .tactical-presentation-header p:last-child {
-  color: #355543;
+  color: #374151;
   margin-bottom: 0;
   max-width: 860px;
   white-space: pre-wrap;

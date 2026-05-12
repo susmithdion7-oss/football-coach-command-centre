@@ -7,10 +7,10 @@ import TacticalBoard from './pages/TacticalBoard.jsx'
 import { getStorageItem, setStorageItem } from './utils/storage.js'
 
 const pages = [
-  { id: 'dashboard', label: 'Dashboard' },
-  { id: 'players', label: 'Players' },
-  { id: 'sessions', label: 'Session Planner' },
-  { id: 'tactics', label: 'Tactical Board' },
+  { id: 'dashboard', icon: 'HQ', label: 'Dashboard' },
+  { id: 'players', icon: 'PL', label: 'Players' },
+  { id: 'sessions', icon: 'SP', label: 'Session Planner' },
+  { id: 'tactics', icon: 'TB', label: 'Tactical Board' },
 ]
 
 function createRecordId(prefix) {
@@ -309,10 +309,11 @@ function App() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark">FC</div>
+          <div className="brand-mark">AO</div>
           <div>
-            <p className="brand-kicker">Coach Command</p>
-            <h1>Centre</h1>
+            <p className="brand-kicker">Coach HQ</p>
+            <h1>AFC Oldham</h1>
+            <span>2024/25 Season</span>
           </div>
         </div>
 
@@ -324,63 +325,101 @@ function App() {
               onClick={() => setActivePage(page.id)}
               type="button"
             >
-              {page.label}
+              <span className="nav-icon">{page.icon}</span>
+              <span>{page.label}</span>
             </button>
           ))}
         </nav>
+
+        <div className="sidebar-footer">
+          <div className="season-card">
+            <span>Current season</span>
+            <strong>2024/25</strong>
+            <p>Grassroots performance workspace</p>
+          </div>
+
+          <div className="coach-card">
+            <div className="coach-avatar">CO</div>
+            <div>
+              <span>Coach workspace</span>
+              <strong>Local browser save</strong>
+            </div>
+          </div>
+
+          <button className="sidebar-help" type="button">
+            Help & support
+          </button>
+        </div>
       </aside>
 
       <main className="main-content">
         <header className="topbar">
-          <div>
-            <p className="section-kicker">Version 0.1 foundation</p>
+          <div className="topbar-title">
+            <p className="section-kicker">AFC Oldham Command Centre</p>
             <h2>{pageTitle}</h2>
+            <span>2024/25 Season</span>
           </div>
-          <span className="status-pill">Local only</span>
+
+          <div className="topbar-meta" aria-label="Workspace summary">
+            <div className="fixture-pill">
+              <span>Next fixture</span>
+              <strong>Sat 10:30</strong>
+            </div>
+            <button className="primary-button" type="button" onClick={() => setActivePage('sessions')}>
+              Create Session
+            </button>
+            <button className="secondary-button" disabled type="button">
+              New Announcement
+            </button>
+            <span className="notification-dot" aria-label="Notifications">0</span>
+            <span className="profile-chip">Coach</span>
+          </div>
         </header>
 
-        {activePage === 'dashboard' && (
-          <Dashboard
-            nextSession={nextSession}
-            onNavigate={setActivePage}
-            playerCount={players.length}
-            recentPastSession={recentPastSession}
-            sessionCount={sessions.length}
-            tacticalBoardCount={tacticalBoards.length}
-            upcomingSessions={upcomingSessions}
-          />
-        )}
-        {activePage === 'players' && (
-          <Players
-            players={players}
-            onAddPlayer={addPlayer}
-            onDeletePlayer={deletePlayer}
-            onUpdatePlayer={updatePlayer}
-          />
-        )}
-        {activePage === 'sessions' && (
-          <SessionPlanner
-            onAddSession={addSession}
-            onCopyDiagramToBoard={copyActivityDiagramToTacticalBoard}
-            onDeleteSession={deleteSession}
-            onDuplicateSession={duplicateSession}
-            onUpdateSession={updateSession}
-            sessions={sessions}
-          />
-        )}
-        {activePage === 'tactics' && (
-          <TacticalBoard
-            activeBoardId={activeTacticalBoardId}
-            boards={tacticalBoards}
-            notice={tacticalBoardNotice}
-            onAddBoard={addTacticalBoard}
-            onClearNotice={() => setTacticalBoardNotice('')}
-            onDeleteBoard={deleteTacticalBoard}
-            onDuplicateBoard={duplicateTacticalBoard}
-            onSelectBoard={setActiveTacticalBoardId}
-            onUpdateBoard={updateTacticalBoard}
-          />
-        )}
+        <div className="content-frame">
+          {activePage === 'dashboard' && (
+            <Dashboard
+              nextSession={nextSession}
+              onNavigate={setActivePage}
+              playerCount={players.length}
+              recentPastSession={recentPastSession}
+              sessionCount={sessions.length}
+              tacticalBoardCount={tacticalBoards.length}
+              upcomingSessions={upcomingSessions}
+            />
+          )}
+          {activePage === 'players' && (
+            <Players
+              players={players}
+              onAddPlayer={addPlayer}
+              onDeletePlayer={deletePlayer}
+              onUpdatePlayer={updatePlayer}
+            />
+          )}
+          {activePage === 'sessions' && (
+            <SessionPlanner
+              onAddSession={addSession}
+              onCopyDiagramToBoard={copyActivityDiagramToTacticalBoard}
+              onDeleteSession={deleteSession}
+              onDuplicateSession={duplicateSession}
+              onUpdateSession={updateSession}
+              sessions={sessions}
+            />
+          )}
+          {activePage === 'tactics' && (
+            <TacticalBoard
+              activeBoardId={activeTacticalBoardId}
+              boards={tacticalBoards}
+              notice={tacticalBoardNotice}
+              onAddBoard={addTacticalBoard}
+              onClearNotice={() => setTacticalBoardNotice('')}
+              onDeleteBoard={deleteTacticalBoard}
+              onDuplicateBoard={duplicateTacticalBoard}
+              onSelectBoard={setActiveTacticalBoardId}
+              onUpdateBoard={updateTacticalBoard}
+            />
+          )}
+        </div>
       </main>
     </div>
   )

@@ -1,7 +1,7 @@
 .activity-diagram-section {
-  background: #f7fbf8;
-  border: 1px solid #d7e1da;
-  border-radius: 8px;
+  background: var(--club-surface-soft);
+  border: 1px solid var(--club-border);
+  border-radius: var(--radius-lg);
   display: grid;
   gap: 14px;
   padding: 16px;
@@ -38,10 +38,10 @@
 }
 
 .diagram-notes-preview {
-  background: #ffffff;
-  border: 1px solid #d7e1da;
-  border-radius: 8px;
-  color: #355543;
+  background: var(--club-surface);
+  border: 1px solid var(--club-border);
+  border-radius: var(--radius-lg);
+  color: #374151;
   display: grid;
   gap: 6px;
   justify-self: center;
@@ -51,7 +51,7 @@
 }
 
 .diagram-notes-preview span {
-  color: #214530;
+  color: var(--club-primary-dark);
   font-size: 0.8rem;
   font-weight: 900;
   text-transform: uppercase;
@@ -63,10 +63,10 @@
 }
 
 .diagram-editor-panel {
-  background: #ffffff;
-  border: 1px solid #c5d8cb;
-  border-radius: 8px;
-  box-shadow: inset 0 0 0 1px rgba(21, 86, 54, 0.04);
+  background: var(--club-surface);
+  border: 1px solid var(--club-border);
+  border-radius: var(--radius-xl);
+  box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.04);
   display: grid;
   gap: 16px;
   padding: 16px;
@@ -75,8 +75,8 @@
 .diagram-editor-toolbar {
   align-items: end;
   background: rgba(255, 255, 255, 0.96);
-  border: 1px solid #d7e1da;
-  border-radius: 8px;
+  border: 1px solid var(--club-border);
+  border-radius: var(--radius-lg);
   display: grid;
   gap: 12px;
   grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
@@ -106,8 +106,8 @@
 }
 
 .diagram-action-bar {
-  background: #ffffff;
-  border-top: 1px solid #d7e1da;
+  background: var(--club-surface);
+  border-top: 1px solid var(--club-border);
   justify-content: flex-end;
   margin: 0 -16px -16px;
   padding: 12px 16px;
@@ -119,9 +119,9 @@
 .diagram-layout-field,
 .diagram-notes-field,
 .selected-control-grid label {
-  color: #355543;
+  color: #374151;
   display: grid;
-  font-weight: 800;
+  font-weight: 850;
   gap: 7px;
 }
 
@@ -138,17 +138,17 @@
 
 .diagram-toolbar button,
 .selected-control-buttons button {
-  background: #eef4f0;
-  border-radius: 8px;
-  color: #214530;
+  background: var(--club-surface-soft);
+  border-radius: var(--radius-md);
+  color: var(--club-text);
   cursor: pointer;
-  font-weight: 800;
+  font-weight: 850;
   padding: 9px 11px;
 }
 
 .diagram-toolbar button:hover,
 .selected-control-buttons button:hover {
-  background: #dbe8df;
+  background: var(--club-primary-soft);
 }
 
 .diagram-toolbar button:disabled,
@@ -159,8 +159,8 @@
 
 .diagram-pitch {
   background: #1f7a45;
-  border: 2px solid #0b2d1d;
-  border-radius: 8px;
+  border: 2px solid var(--club-secondary);
+  border-radius: var(--radius-lg);
   display: block;
   overflow: hidden;
   touch-action: none;
@@ -194,7 +194,7 @@
 }
 
 .diagram-object.selected {
-  filter: drop-shadow(0 0 1.2px #ffffff) drop-shadow(0 0 2px #ffd166);
+  filter: drop-shadow(0 0 1.2px #ffffff) drop-shadow(0 0 2px var(--club-accent));
 }
 
 .diagram-player-head {
@@ -218,7 +218,7 @@
 }
 
 .diagram-player.homePlayer .diagram-player-shirt {
-  fill: #0b2d1d;
+  fill: var(--club-secondary);
 }
 
 .diagram-player.homePlayer .diagram-player-number {
@@ -226,16 +226,16 @@
 }
 
 .diagram-player.awayPlayer .diagram-player-shirt {
-  fill: #f7fbf8;
-  stroke: #0b2d1d;
+  fill: var(--club-primary);
+  stroke: #ffffff;
 }
 
 .diagram-player.awayPlayer .diagram-player-number {
-  fill: #0b2d1d;
+  fill: #ffffff;
 }
 
 .diagram-player.neutralPlayer .diagram-player-shirt {
-  fill: #f0c84b;
+  fill: #facc15;
   stroke: #604b00;
 }
 
@@ -284,7 +284,7 @@
 }
 
 .diagram-mini-goal-frame {
-  filter: drop-shadow(0 0 1px rgba(11, 45, 29, 0.7));
+  filter: drop-shadow(0 0 1px rgba(21, 21, 21, 0.7));
 }
 
 .diagram-mini-goal-side {
@@ -322,7 +322,7 @@
 
 .diagram-line-handle {
   cursor: crosshair;
-  fill: #ffd166;
+  fill: var(--club-accent);
   stroke: #17211b;
   stroke-width: 0.35;
 }
@@ -342,16 +342,16 @@
 }
 
 .selected-object-panel {
-  background: #f7fbf8;
-  border: 1px solid #d7e1da;
-  border-radius: 8px;
+  background: var(--club-surface-soft);
+  border: 1px solid var(--club-border);
+  border-radius: var(--radius-lg);
   display: grid;
   gap: 14px;
   padding: 14px;
 }
 
 .selected-object-panel.muted {
-  color: #5f7669;
+  color: var(--club-muted);
 }
 
 .selected-control-grid {
@@ -361,9 +361,9 @@
 }
 
 .diagram-notes-field {
-  color: #355543;
+  color: #374151;
   display: grid;
-  font-weight: 800;
+  font-weight: 850;
   gap: 7px;
 }
 
