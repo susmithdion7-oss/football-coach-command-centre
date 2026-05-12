@@ -6,6 +6,7 @@ import './diagram.css'
 import './tacticalBoard.css'
 import './teamWizard.css'
 import './crest.css'
+import './dashboard.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
