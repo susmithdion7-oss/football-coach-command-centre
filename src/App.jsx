@@ -183,20 +183,24 @@ function App() {
   const themeStyle = getThemeStyle(teamIdentity)
   const isDashboardPage = activePage === 'dashboard'
   const isPlayersPage = activePage === 'players'
+  const isSessionsPage = activePage === 'sessions'
   const workspacePageClass = [
     'main-content',
     isDashboardPage ? 'dashboard-main-content' : '',
     isPlayersPage ? 'players-main-content' : '',
+    isSessionsPage ? 'sessions-main-content' : '',
   ].filter(Boolean).join(' ')
   const workspaceHeaderClass = [
     'topbar',
     isDashboardPage ? 'dashboard-topbar' : '',
     isPlayersPage ? 'players-topbar' : '',
+    isSessionsPage ? 'sessions-topbar' : '',
   ].filter(Boolean).join(' ')
   const workspaceFrameClass = [
     'content-frame',
     isDashboardPage ? 'dashboard-content-frame' : '',
     isPlayersPage ? 'players-content-frame' : '',
+    isSessionsPage ? 'sessions-content-frame' : '',
   ].filter(Boolean).join(' ')
 
   function saveTeamIdentity(nextIdentity) {
@@ -496,7 +500,9 @@ function App() {
               onDeleteSession={deleteSession}
               onDuplicateSession={duplicateSession}
               onUpdateSession={updateSession}
+              players={players}
               sessions={sessions}
+              teamIdentity={teamIdentity}
             />
           )}
           {activePage === 'tactics' && (
