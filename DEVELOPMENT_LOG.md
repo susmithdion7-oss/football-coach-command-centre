@@ -4,6 +4,39 @@ This file records important product and engineering work for Coach Command Centr
 
 Future Codex sessions should read this log before development, then add a short entry after meaningful changes.
 
+## 2026-05-15 - Onboarding Desktop Proportion Pass
+
+Date: 2026-05-15
+
+Task: Refine first-time onboarding wizard proportions for large desktop screens.
+
+Files changed:
+
+- `src/onboardingDesktopProportions.css`
+- `src/main.jsx`
+- `DEVELOPMENT_LOG.md`
+
+What changed:
+
+- Added a focused desktop-only proportion layer for the onboarding wizard.
+- Increased the shared header, main content, and footer workspace width to 1420px on large screens.
+- Adjusted the main desktop columns to a 900px setup panel, 380px live preview panel, and 28px gap.
+- Increased setup panel padding, section spacing, preview panel presence, and bottom action button size.
+- Preserved all onboarding functionality and localStorage behavior.
+
+Testing:
+
+- Prepared for Vercel/build validation on a focused PR branch.
+- Manual testing should focus on 1920x1080 and 27-inch desktop proportions.
+
+Known issues:
+
+- This is a CSS-only proportion pass and still needs visual review on the target monitor.
+
+Next step:
+
+- Review the Vercel preview on a large desktop screen and compare the shell width, left panel, preview panel, and action bar alignment.
+
 ## 2026-05-15 - Onboarding Final Concept UI Match
 
 Date: 2026-05-15
