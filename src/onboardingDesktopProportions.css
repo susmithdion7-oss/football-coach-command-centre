@@ -1,0 +1,121 @@
+/* Focused desktop proportion pass for 27-inch onboarding review. UI-only. */
+@media (min-width: 1281px) {
+  .onboarding-v2 {
+    --onboarding-workspace-width: 1420px;
+    gap: 30px;
+    padding: 24px 32px 108px;
+  }
+
+  .onboarding-v2 .onboarding-wizard-header,
+  .onboarding-v2 .onboarding-wizard-main,
+  .onboarding-v2 .onboarding-action-bar {
+    width: min(var(--onboarding-workspace-width), calc(100vw - 64px));
+  }
+
+  .onboarding-v2 .onboarding-wizard-header {
+    grid-template-columns: 270px minmax(0, 1fr) 112px;
+    gap: 22px;
+    min-height: 82px;
+    padding: 15px 18px;
+  }
+
+  .onboarding-v2 .onboarding-stepper {
+    gap: 10px;
+  }
+
+  .onboarding-v2 .onboarding-stepper button {
+    min-height: 44px;
+    padding: 8px 11px;
+    font-size: 0.74rem;
+  }
+
+  .onboarding-v2 .onboarding-stepper button span {
+    width: 25px;
+    height: 25px;
+  }
+
+  .onboarding-v2 .onboarding-wizard-main {
+    grid-template-columns: minmax(0, 900px) 380px;
+    gap: 28px;
+  }
+
+  .onboarding-v2 .compact-setup-card {
+    min-height: min(704px, calc(100vh - 214px));
+    padding: 30px 32px;
+  }
+
+  .onboarding-v2 .onboarding-step-stack,
+  .onboarding-v2 .polished-direction-stack,
+  .onboarding-v2 .polished-squad-layout {
+    gap: 17px;
+  }
+
+  .onboarding-v2 .setup-section-card {
+    padding: 19px 20px;
+  }
+
+  .onboarding-v2 .two-column-section {
+    grid-template-columns: 226px minmax(0, 1fr);
+    gap: 22px;
+    padding: 20px;
+  }
+
+  .onboarding-v2 .setup-section-card:has(.setup-section-heading) {
+    grid-template-columns: 226px minmax(0, 1fr);
+  }
+
+  .onboarding-v2 .two-column-section > div:first-child p,
+  .onboarding-v2 .setup-section-heading p {
+    max-width: 186px;
+  }
+
+  .onboarding-v2 .compact-fields {
+    gap: 13px;
+  }
+
+  .onboarding-v2 .selectable-card-grid,
+  .onboarding-v2 .compact-choice-grid {
+    gap: 10px;
+  }
+
+  .onboarding-v2 .selectable-card-grid button {
+    min-height: 45px;
+  }
+
+  .onboarding-v2 .polished-live-preview {
+    min-height: min(590px, calc(100vh - 228px));
+    padding: 24px;
+  }
+
+  .onboarding-v2 .preview-block,
+  .onboarding-v2 .preview-identity-row,
+  .onboarding-v2 .preview-coach-card {
+    border-radius: 20px;
+  }
+
+  .onboarding-v2 .preview-block {
+    padding: 15px;
+  }
+
+  .onboarding-v2 .onboarding-action-bar {
+    min-height: 78px;
+    padding: 13px 16px;
+  }
+
+  .onboarding-v2 .onboarding-action-bar .onboarding-primary-button {
+    min-width: 146px;
+    min-height: 50px;
+  }
+
+  .onboarding-v2 .onboarding-action-bar .onboarding-secondary-button {
+    min-width: 84px;
+    min-height: 48px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .onboarding-v2 {
+    padding-left: 36px;
+    padding-right: 36px;
+  }
+}
