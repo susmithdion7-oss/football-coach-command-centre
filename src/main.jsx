@@ -11,6 +11,7 @@ import './playersHub.css'
 import './sessionPlanner.css'
 import './sessionPlannerConcept.css'
 import './onboarding.css'
+import './onboardingPolish.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

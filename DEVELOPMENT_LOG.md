@@ -4,6 +4,43 @@ This file records important product and engineering work for Coach Command Centr
 
 Future Codex sessions should read this log before development, then add a short entry after meaningful changes.
 
+## 2026-05-15 - Onboarding Polish and Squad Import Preview
+
+Date: 2026-05-15
+
+Task: Polish the first-time onboarding wizard and fix the Squad Setup import preview trust issue.
+
+Files changed:
+
+- `src/pages/OnboardingFlow.jsx`
+- `src/pages/OnboardingFlowV2.jsx`
+- `src/onboardingPolish.css`
+- `src/main.jsx`
+- `DEVELOPMENT_LOG.md`
+
+What changed:
+
+- Switched onboarding to a polished v2 wizard while keeping the existing app shell untouched.
+- Made the wizard layout more compact on large screens with a focused setup card and step-specific Live Coach HQ Preview.
+- Added custom role, coaching style, focus, age group, team type, match day, duration, playing style, training focus, and objective inputs.
+- Simplified Team Identity to one Primary team colour, expanded named colour presets, and kept custom colour picker support.
+- Fixed Squad Setup so pasted or CSV players show the full parsed count, a clear import trust note, and an internally scrollable preview table.
+- Reworked Coaching Direction into three clear sections instead of a large button wall.
+
+Testing:
+
+- Code was prepared on a GitHub branch for Vercel/build validation.
+- Manual testing should cover a fresh onboarding flow, 16-player paste import, image uploads, launch into Dashboard, Players data, and existing-user data protection.
+
+Known issues:
+
+- Explore Demo remains a polished coming-soon modal and does not create demo data yet.
+- CSV import is supported; XLSX import is still out of scope.
+
+Next step:
+
+- Manually test the full onboarding flow from an incognito browser and confirm saved workspaces skip onboarding.
+
 ## 2026-05-15 - First-Time Onboarding Flow v1
 
 Date: 2026-05-15
