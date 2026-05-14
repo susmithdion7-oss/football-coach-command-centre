@@ -4,6 +4,43 @@ This file records important product and engineering work for Coach Command Centr
 
 Future Codex sessions should read this log before development, then add a short entry after meaningful changes.
 
+## 2026-05-15 - First-Time Onboarding Flow v1
+
+Date: 2026-05-15
+
+Task: Redesign the first-time user onboarding flow.
+
+Files changed:
+
+- `src/App.jsx`
+- `src/pages/OnboardingFlow.jsx`
+- `src/onboarding.css`
+- `src/main.jsx`
+- `DEVELOPMENT_LOG.md`
+
+What changed:
+
+- Added a full-screen first-time entry page with Create New Team and Explore Demo choices.
+- Added a six-step onboarding wizard for Coach Profile, Team Identity, Squad Setup, Season Setup, Coaching Direction, and Review & Launch.
+- Added front-end-only coach photo and team crest uploads.
+- Added CSV and pasted player-list parsing with import preview before launch.
+- Connected onboarding completion to the existing localStorage team identity and players patterns.
+- Preserved the existing formal app shell for users whose team identity is already completed.
+
+Testing:
+
+- Vercel build check passed on the PR branch.
+- Manual testing should cover new-user onboarding, image upload, player import preview, launch into Dashboard, and old-user data protection.
+
+Known issues:
+
+- Explore Demo currently shows a polished coming-soon modal instead of creating demo data.
+- XLSX import is not included in this first version; CSV and paste list are supported.
+
+Next step:
+
+- Manually test the full onboarding flow in an incognito browser and then test an existing browser with saved data.
+
 ## Initial Log Entry
 
 Date: 2026-05-13
