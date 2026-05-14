@@ -4,6 +4,40 @@ This file records important product and engineering work for Coach Command Centr
 
 Future Codex sessions should read this log before development, then add a short entry after meaningful changes.
 
+## 2026-05-15 - Onboarding Final Concept UI Match
+
+Date: 2026-05-15
+
+Task: Match the first-time onboarding wizard UI to the final concept reference.
+
+Files changed:
+
+- `src/onboardingFinalConcept.css`
+- `src/main.jsx`
+- `DEVELOPMENT_LOG.md`
+
+What changed:
+
+- Added a final concept CSS layer for the onboarding wizard only.
+- Enlarged and rebalanced the desktop wizard canvas to better match the reference concept.
+- Refined the dark stadium-like shell, top brand/header, horizontal stepper, white setup panel, dark live preview panel, and fixed bottom action bar.
+- Added visual-only autosave text in the bottom action bar.
+- Kept existing onboarding functionality, localStorage behavior, player import, image upload, and custom input logic intact.
+
+Testing:
+
+- Prepared on the existing onboarding PR branch for Vercel/build validation.
+- Manual testing should focus on 1920x1080 desktop proportions, Step 1 visual match, all onboarding steps, 16-player import preview, and old-user data protection.
+
+Known issues:
+
+- This is a CSS-focused visual refinement; browser-based visual review is still needed before merging.
+- Explore Demo remains a coming-soon modal.
+
+Next step:
+
+- Review the Vercel preview on a large screen and check the onboarding flow end to end.
+
 ## 2026-05-15 - Onboarding Polish and Squad Import Preview
 
 Date: 2026-05-15
