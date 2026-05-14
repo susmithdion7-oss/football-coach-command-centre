@@ -13,6 +13,7 @@ import './sessionPlannerConcept.css'
 import './onboarding.css'
 import './onboardingPolish.css'
 import './onboardingFinalConcept.css'
+import './onboardingDesktopProportions.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
