@@ -10,6 +10,7 @@ import './dashboard.css'
 import './playersHub.css'
 import './sessionPlanner.css'
 import './sessionPlannerConcept.css'
+import './onboarding.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

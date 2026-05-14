@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { normaliseDiagram } from './components/DiagramPreview.jsx'
 import TeamBadge from './components/TeamBadge.jsx'
 import Dashboard from './pages/Dashboard.jsx'
+import OnboardingFlow from './pages/OnboardingFlow.jsx'
 import Players from './pages/Players.jsx'
 import SessionPlanner from './pages/SessionPlanner.jsx'
 import TacticalBoard from './pages/TacticalBoard.jsx'
@@ -27,6 +28,8 @@ const futurePages = [
   { id: 'calendar', icon: 'CA', label: 'Calendar' },
   { id: 'reports', icon: 'RP', label: 'Reports' },
 ]
+
+const onboardingCompleteStorageKey = 'coachCommandCentre:onboardingComplete'
 
 function createRecordId(prefix) {
   if (window.crypto?.randomUUID) {
@@ -146,6 +149,18 @@ function getCoachInitials(coachName) {
   return `${words[0][0]}${words[1][0]}`.toUpperCase()
 }
 
+function getImportedOnboardingPlayers(setupData) {
+  const now = new Date().toISOString()
+
+  return (setupData.importedPlayers || [])
+    .filter((player) => player.fullName?.trim())
+    .map((player, index) => ({
+      ...player,
+      id: createRecordId(`player-${index}`),
+      createdAt: now,
+    }))
+}
+
 function App() {
   const [activePage, setActivePage] = useState('dashboard')
   const [players, setPlayers] = useState(() => getStorageItem('players', []))
@@ -209,6 +224,60 @@ function App() {
     applyTeamTheme(identityToSave)
     setTeamIdentity(identityToSave)
     setStorageItem(teamIdentityStorageKey, identityToSave)
+    setActivePage('dashboard')
+  }
+
+  function completeOnboarding(setupData) {
+    const importedPlayers = getImportedOnboardingPlayers(setupData)
+    const identityToSave = prepareTeamIdentityForSave({
+      ...teamIdentity,
+      teamName: setupData.teamName,
+      clubName: setupData.clubName || 'Your Club',
+      seasonName: setupData.seasonName,
+      ageGroup: setupData.ageGroup,
+      teamType: setupData.teamType,
+      homeKitColor: setupData.homeKitColor,
+      awayKitColor: setupData.awayKitColor,
+      primaryColor: setupData.homeKitColor,
+      secondaryColor: setupData.awayKitColor,
+      teamCrest: setupData.teamCrest,
+      teamMotto: setupData.teamMotto,
+      playingStyle: setupData.playingStyles.join(', ') || setupData.coachingStyle,
+      teamGoal: setupData.seasonObjectives.join(', '),
+      coachName: setupData.coachName,
+      coachRole: setupData.coachRole,
+      coachGoal: setupData.coachObjectives.join(', '),
+      coachPhoto: setupData.coachPhoto,
+      coachMotto: setupData.coachMotto,
+      coachStyle: setupData.coachingStyle,
+      coachFocusAreas: setupData.coachFocusAreas,
+      squadSizeTarget: String(importedPlayers.length || ''),
+      homeVenue: setupData.trainingVenue,
+      trainingDays: setupData.trainingDays.join(', '),
+      trainingDaysList: setupData.trainingDays,
+      trainingTime: setupData.trainingTime,
+      matchDay: setupData.matchDay,
+      competition: setupData.competition,
+      sessionDurationDefault: setupData.sessionDurationDefault,
+      trainingPriorities: setupData.trainingPriorities,
+      seasonObjectives: setupData.seasonObjectives,
+      coachObjectives: setupData.coachObjectives,
+      onboardingCompletedAt: new Date().toISOString(),
+    }, teamIdentity)
+
+    applyTeamTheme(identityToSave)
+    setTeamIdentity(identityToSave)
+    setStorageItem(teamIdentityStorageKey, identityToSave)
+    setStorageItem(onboardingCompleteStorageKey, true)
+
+    if (importedPlayers.length > 0) {
+      setPlayers((currentPlayers) => (
+        setupData.squadSaveMode === 'replace'
+          ? importedPlayers
+          : [...currentPlayers, ...importedPlayers]
+      ))
+    }
+
     setActivePage('dashboard')
   }
 
@@ -374,10 +443,10 @@ function App() {
 
   if (!teamIdentity.setupCompleted) {
     return (
-      <TeamSetup
+      <OnboardingFlow
+        existingPlayersCount={players.length}
         identity={teamIdentity}
-        isInitialSetup
-        onSave={saveTeamIdentity}
+        onComplete={completeOnboarding}
       />
     )
   }
