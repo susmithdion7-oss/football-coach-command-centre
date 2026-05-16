@@ -4,6 +4,47 @@ This file records important product and engineering work for Coach Command Centr
 
 Future Codex sessions should read this log before development, then add a short entry after meaningful changes.
 
+## 2026-05-17 - Players UI Polish and Club Theme Integration
+
+Date: 2026-05-17
+
+Task: Polish the FC-inspired Players section and connect it to the dynamic club theme.
+
+Files changed:
+
+- `src/pages/PlayersOperatingSystem.jsx`
+- `src/pages/PlayersOperatingSystemV2.jsx`
+- `src/playersOperatingSystemPolish.css`
+- `src/main.jsx`
+- `DEVELOPMENT_LOG.md`
+
+What changed:
+
+- Routed the Players page to a polished v2 operating system component while preserving the existing Player Centre, Squad Management, and Development Plans structure.
+- Compressed the Players top area into a compact control bar and replaced the large module cards with compact module tabs.
+- Reworked the Player Centre list height, column sizing, selected row state, and overflow behavior to avoid horizontal scrolling.
+- Strengthened the selected player detail panel into a player profile command panel with richer coach actions.
+- Polished the dark grouped player action menu and kept Profile, Coaching, Squad, and Danger command groups.
+- Reworked Squad Management so the pitch is the main stage, lineup slots open a player picker instead of showing select boxes, and the bench uses player cards.
+- Added a player picker for lineup slots, bench additions, and assignments.
+- Changed save feedback into a compact toast instead of a full-width green message bar.
+- Added a Players polish CSS layer that derives primary highlights, tabs, borders, glow, selected states, buttons, pitch slots, and active states from the global club theme variables.
+
+Testing:
+
+- Code prepared on the existing Players PR branch for Vercel/build validation.
+- Manual testing should cover club colour changes, Player Centre selection/action menu, lineup slot picker, bench cards, tactic preset states, assignments, refresh persistence, and unrelated pages.
+
+Known issues:
+
+- Development Plans remains an intentional placeholder.
+- Lineup still uses click-to-pick rather than drag and drop.
+- No automated tests currently cover the Players operating system flow.
+
+Next step:
+
+- Review the Vercel preview on a 1920x1080 desktop screen and test sky blue, red, orange, and green club themes.
+
 ## 2026-05-17 - Players Operating System Redesign v1
 
 Date: 2026-05-17
