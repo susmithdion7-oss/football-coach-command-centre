@@ -4,6 +4,44 @@ This file records important product and engineering work for Coach Command Centr
 
 Future Codex sessions should read this log before development, then add a short entry after meaningful changes.
 
+## 2026-05-17 - Players Operating System Redesign v1
+
+Date: 2026-05-17
+
+Task: Redesign the Players section into an FC-inspired player operating system.
+
+Files changed:
+
+- `src/pages/Players.jsx`
+- `src/pages/PlayersOperatingSystem.jsx`
+- `src/playersOperatingSystem.css`
+- `src/main.jsx`
+- `DEVELOPMENT_LOG.md`
+
+What changed:
+
+- Replaced the old light Squad Hub entry with a dark, immersive Players workspace.
+- Added three top-level Players modules: Player Centre, Squad Management, and Development Plans.
+- Built Player Centre with a searchable player list, selected player detail panel, profile completeness, notes, training/match feedback summaries, and a grouped dark action menu.
+- Built Squad Management with Lineup, Tactics, and Assignments subtabs using localStorage-backed lineup, tactic, and assignment state.
+- Kept Add Player, Edit Player Details, player photo upload, coach notes, and existing player data shape compatible with the existing `players` localStorage data.
+- Added Development Plans as a polished coming-soon placeholder without adding backend, AI, API, or database features.
+
+Testing:
+
+- Code prepared on a focused PR branch for build/Vercel validation.
+- Manual testing should cover Player Centre selection, action menu, Add/Edit player, notes, Starting XI, bench, tactics, assignments, refresh persistence, and unrelated pages.
+
+Known issues:
+
+- Development Plans is intentionally a placeholder.
+- Lineup management uses select-based assignment instead of drag and drop in this first version.
+- No automated tests currently cover the Players operating system flow.
+
+Next step:
+
+- Review the Vercel preview on a 1920x1080 desktop screen and test the full Players workflow with existing saved players.
+
 ## 2026-05-15 - Onboarding Desktop Proportion Pass
 
 Date: 2026-05-15
