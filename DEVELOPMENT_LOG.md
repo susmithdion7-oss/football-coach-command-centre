@@ -4,6 +4,47 @@ This file records important product and engineering work for Coach Command Centr
 
 Future Codex sessions should read this log before development, then add a short entry after meaningful changes.
 
+## 2026-06-04 - Players Phase 1 Shell Theme And Empty Squad
+
+Date: 2026-06-04
+
+Task: Unify the Players section shell with Coach HQ, improve club theme integration, and add a professional empty squad experience.
+
+Scope: Players UI and local frontend flow only. No backend, database, login, AI/API, payment, chat, app routing, storage utilities, Dashboard, Session Planner, Tactical Board, Onboarding, or Team Setup changes.
+
+Files changed:
+
+- `src/pages/PlayersOperatingSystemV2.jsx`
+- `src/playersOperatingSystemPolish.css`
+- `DEVELOPMENT_LOG.md`
+
+What changed:
+
+- Added a state-aware Player Centre empty squad experience with Import Squad List, Paste Player List, and Add Player Manually actions.
+- Added a lightweight paste/import modal that previews player rows and appends players through the existing `onAddPlayer` flow.
+- Added a no-players Squad Management locked state instead of showing an empty lineup, tactics, or assignments workspace.
+- Added a no-players Development Plans locked state.
+- Guarded the player picker so it does not open when there are no players.
+- Improved Players shell and new states to use club theme variables for primary actions, highlights, borders, empty icons, and modal accents.
+
+Testing:
+
+- Confirmed latest remote `main` was used before implementation.
+- Ran `git diff --check`; only line-ending warnings were reported by Git.
+- Installed local dependencies with package-lock generation disabled for dev-server verification.
+- Started the local Vite dev server and confirmed the app loads without browser console errors.
+- Did not run `npm run build` because this task explicitly said not to rebuild the app.
+- Did not seed, clear, or modify browser localStorage for testing; the in-app browser profile was still at first-run onboarding.
+
+Known issues:
+
+- Development Plans remains a future/coming soon area.
+- Import is intentionally paste/CSV-style text only; no Excel dependency, backend, or file storage was added.
+
+Next step:
+
+- Test Players in a browser profile with existing setup data, then verify empty squad, imported squad, and existing squad states.
+
 ## 2026-06-04 - Long-Term Project Task Board And Documentation System
 
 Date: 2026-06-04
