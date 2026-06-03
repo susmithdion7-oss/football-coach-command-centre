@@ -1,107 +1,72 @@
 # Iteration Plan
 
-This plan keeps future work focused on the local-first coaching loop before backend, cloud sync, or AI.
+This plan organizes future work into clear phases. It keeps the product focused on the coach-first local MVP before backend, cloud sync, or AI.
 
-## Short-Term: Strengthen The Local MVP
+## Phase 1: Stabilise And Unify Design
 
-Goal: make the existing localStorage app feel excellent and safer for real coach use.
+| Field | Detail |
+| --- | --- |
+| Goals | Make the app feel like one unified Coach HQ product; clarify design system; protect localStorage data; improve documentation and QA workflow. |
+| Tasks | Maintain docs; use `DESIGN_SYSTEM.md`; review Dashboard, Players, Session Planner, Tactical Board for theme consistency; plan Dashboard Coach Mission Control v1; standardize disabled future actions. |
+| Success criteria | All future work starts from docs; no old-directory mistakes; modules inherit club colours; no source changes break saved data. |
+| Risks | Over-polishing without improving coaching workflow; accidentally redesigning unrelated modules. |
 
-| Iteration | Focus | Deliverables |
-| --- | --- | --- |
-| 1 | Documentation and data safety | Complete docs, exact storage key reference, local data protection rules. |
-| 2 | Data backup | Export/import local data, clear backup instructions, safe restore behavior. |
-| 3 | Dashboard clarity | Stronger next-action area, clearer distinction between real data and previews. |
-| 4 | Players depth | Working Development Plans, better notes timeline, clearer player review states. |
-| 5 | Session reflection | Delivered-session reflection, follow-up priorities, session-to-player feedback links. |
-| 6 | Tactical Board ergonomics | Faster object workflows, better presets, improved board library scanning. |
+## Phase 2: Core Coaching Workflow
 
-## Mid-Term: Complete The Coaching Loop
+| Field | Detail |
+| --- | --- |
+| Goals | Strengthen the daily coach workflow across Dashboard, Players, Sessions, and Tactical Board. |
+| Tasks | Dashboard Coach Mission Control v1; Players UI Polish v2; Session Planner Dashboard Redesign; Create Session Wizard; Session Workspace Redesign; Tactical Board UI Polish. |
+| Success criteria | Coach can see priorities, manage players, plan a session, create diagrams, and save work with a clear workflow. |
+| Risks | Breaking draft autosave; confusing real data with preview data; making pages too heavy. |
 
-Goal: connect players, sessions, tactical planning, and match reflection.
+## Phase 3: Output And Reporting
 
-| Phase | Focus | Deliverables |
-| --- | --- | --- |
-| 1 | Match Centre foundation | Fixture records, opponent, venue, lineup notes, match plan, reflection. |
-| 2 | Match-to-session loop | Convert match reflection into next training focus and follow-up session starter. |
-| 3 | Reports foundation | Player development summaries, session history, tactical board library summary. |
-| 4 | Calendar foundation | Date-based view for sessions and matches. |
-| 5 | Output/export | Coach-facing session/report output, future PDF/image export path. |
+| Field | Detail |
+| --- | --- |
+| Goals | Help coaches produce usable outputs and protect local data. |
+| Tasks | Data Export / Import Backup; PDF Export; Reports Foundation; export-ready session preview; backup instructions. |
+| Success criteria | Coach can back up data and create useful session/report output. |
+| Risks | Export complexity; browser compatibility; large data URLs increasing backup size. |
 
-## Long-Term: Infrastructure And AI
+## Phase 4: Match And Feedback Loop
 
-Goal: move beyond browser-only storage only when the local product loop is strong.
+| Field | Detail |
+| --- | --- |
+| Goals | Connect match problems, player feedback, and future training focus. |
+| Tasks | Match Centre Foundation; Player Feedback System; Match Feedback System; Session Review; Player Development Trends. |
+| Success criteria | Coach can record feedback and turn it into next-session priorities. |
+| Risks | Drifting into full club admin; adding too many stats before feedback workflow is clear. |
 
-| Stage | Focus | Notes |
-| --- | --- | --- |
-| Cloud planning | Database model and migration | Start by documenting stable localStorage data shapes. |
-| Authentication | Coach account model | Decide whether a coach owns one team or multiple teams. |
-| Cloud sync | Multi-device persistence | Protect existing browser-local users during migration. |
-| Image storage | Crest/avatar migration | Move data URLs to cloud storage carefully. |
-| AI foundation | Server-side API only | Never expose provider keys in the frontend. |
-| AI assistant | Read-only suggestions first | Use real team, player, session, and match context. |
+## Phase 5: Cloud Backend
 
-## Module Milestones
+| Field | Detail |
+| --- | --- |
+| Goals | Move from browser-only storage to safer multi-device persistence after local product loop is stable. |
+| Tasks | Supabase/Firebase migration planning; auth model; database schema; cloud image storage; import/export migration; local user protection plan. |
+| Success criteria | Cloud plan protects current localStorage users and defines stable data ownership. |
+| Risks | Starting backend too early; losing local data; creating unnecessary SaaS complexity. |
 
-### Dashboard / Coach HQ
+## Phase 6: AI Assistant
 
-Success criteria:
+| Field | Detail |
+| --- | --- |
+| Goals | Add secure, coach-assistive AI only after backend/API infrastructure exists. |
+| Tasks | AI Assistant Planning; server-side API routes; read-only suggestions; editable session drafts; player summaries; match review to training focus. |
+| Success criteria | AI uses real coaching context and never auto-overwrites user data. |
+| Risks | Frontend API key exposure; generic prompt generator behavior; replacing coach judgment instead of supporting it. |
 
-- Coach can quickly see next session, player priorities, tactical board activity, and match context.
-- Preview/future content is clearly labelled or converted into real data-backed content.
+## Recommended Immediate Next Step
 
-### Players
+Start with **Dashboard Coach Mission Control v1** in Plan Mode. It is the best next step because it makes the existing working modules feel connected without adding backend, AI, or new data infrastructure.
 
-Success criteria:
+## Phase Review Checklist
 
-- Player Centre remains fast and scannable.
-- Player profiles show useful development history.
-- Development Plans becomes a real workflow.
-- Lineup, tactics, and assignments remain compatible with existing data.
+At the end of each phase:
 
-### Session Planner
-
-Success criteria:
-
-- Session Studio stays workspace-oriented, not a giant form.
-- Draft recovery remains reliable.
-- Delivered-session reflections can drive future training focus.
-- Activity diagrams remain compatible with Tactical Board.
-
-### Tactical Board
-
-Success criteria:
-
-- Coaches can create a board quickly.
-- Saved board library is easy to scan.
-- Drawing/editing controls feel direct and predictable.
-- Presentation mode remains useful for explanation.
-
-### Match Centre
-
-Success criteria:
-
-- Coaches can record fixture, opponent, lineup, match plan, and reflection.
-- Match reflection can generate training focus for the next session.
-- Module stays coach-first and avoids heavy club admin.
-
-## Work To Avoid Until Stage Changes
-
-- Backend.
-- Cloud database.
-- Login.
-- AI/API calls.
-- Payments.
-- Team chat.
-- Parent/player accounts.
-- Complex permissions.
-- Sensitive medical record systems.
-
-## Review Rhythm
-
-After each meaningful iteration:
-
-1. Update `DEVELOPMENT_LOG.md`.
-2. Update affected docs under `docs/`.
-3. Confirm no localStorage keys were accidentally renamed.
-4. Confirm existing data still loads.
-5. Review Vercel preview when UI changes are included.
+- Update `DEVELOPMENT_LOG.md`.
+- Update affected `docs/` files.
+- Confirm no localStorage keys were renamed.
+- Confirm existing saved data still loads.
+- Confirm disabled future modules remain clearly labelled.
+- Review Vercel preview for UI changes.
