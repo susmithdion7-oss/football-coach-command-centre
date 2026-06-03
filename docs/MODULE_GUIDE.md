@@ -1,118 +1,152 @@
 # Module Guide
 
-This guide describes the current app modules and how they connect through `src/App.jsx`.
+This guide documents the real current modules in the latest remote `main` branch. Do not describe Players, Session Planner, or Tactical Board as placeholders; they are implemented / substantial modules.
 
 ## Page Routing From App.jsx
 
-`App.jsx` uses local React state instead of React Router.
+`App.jsx` uses local React state for page switching.
 
 | Page id | Label | Rendered component | Status |
 | --- | --- | --- | --- |
-| `dashboard` | Home | `Dashboard` | Implemented |
-| `players` | Players | `Players` -> `PlayersOperatingSystem` -> `PlayersOperatingSystemV2` | Implemented |
-| `sessions` | Session Planner | `SessionPlanner` | Implemented |
-| `tactics` | Tactical Board | `TacticalBoard` | Implemented |
-| `clubSetup` | Club Setup / Settings | `TeamSetup` | Implemented |
+| `dashboard` | Home | `Dashboard` | Implemented / substantial |
+| `players` | Players | `Players` -> `PlayersOperatingSystem` -> `PlayersOperatingSystemV2` | Implemented / substantial |
+| `sessions` | Session Planner | `SessionPlanner` | Implemented / substantial |
+| `tactics` | Tactical Board | `TacticalBoard` | Implemented / substantial |
+| `clubSetup` | Club Setup / Settings | `TeamSetup` | Implemented / substantial |
 | `matchCentre` | Match Centre | Disabled future nav item | Future shell |
 | `calendar` | Calendar | Disabled future nav item | Future shell |
 | `reports` | Reports | Disabled future nav item | Future shell |
 
 If `teamIdentity.setupCompleted` is false, `App.jsx` renders `OnboardingFlow` instead of the main app shell.
 
-## Component Relationship
+## Component Hierarchy
 
 ```mermaid
-flowchart LR
-  App[App.jsx] --> Dashboard[Dashboard.jsx]
-  App --> Onboarding[OnboardingFlow.jsx -> OnboardingFlowV2.jsx]
-  App --> TeamSetup[TeamSetup.jsx]
-  App --> Players[Players.jsx -> PlayersOperatingSystem.jsx -> PlayersOperatingSystemV2.jsx]
-  App --> Sessions[SessionPlanner.jsx]
-  App --> Tactics[TacticalBoard.jsx]
+flowchart TD
+  App[App.jsx] --> Gate{teamIdentity.setupCompleted}
+  Gate -- false --> Onboarding[OnboardingFlow -> OnboardingFlowV2]
+  Gate -- true --> Shell[Main App Shell]
+  Shell --> Dashboard[Dashboard.jsx]
+  Shell --> Players[Players -> PlayersOperatingSystem -> PlayersOperatingSystemV2]
+  Shell --> Sessions[SessionPlanner.jsx]
+  Shell --> Tactics[TacticalBoard.jsx]
+  Shell --> Setup[TeamSetup.jsx]
   Sessions --> DiagramEditor[DiagramEditor.jsx]
   Sessions --> DiagramPreview[DiagramPreview.jsx]
   Tactics --> DiagramPreview
-  App --> TeamBadge[TeamBadge.jsx]
-  Dashboard --> TeamBadge
-  TeamSetup --> TeamBadge
+  Dashboard --> TeamBadge[TeamBadge.jsx]
+  Setup --> TeamBadge
 ```
 
-## File / Function Table
-
-| File | Function | Status |
-| --- | --- | --- |
-| `src/App.jsx` | App shell, navigation, state ownership, storage writes, onboarding gate, cross-module callbacks. | Implemented |
-| `src/main.jsx` | React entry point and CSS import order. | Implemented |
-| `src/pages/Dashboard.jsx` | Coach HQ dashboard using players, sessions, boards, and team identity. | Implemented |
-| `src/pages/OnboardingFlow.jsx` | Re-export wrapper to v2 onboarding. | Implemented wrapper |
-| `src/pages/OnboardingFlowV2.jsx` | First-run coach/team/squad/season/direction onboarding. | Implemented |
-| `src/pages/TeamSetup.jsx` | Club setup and team identity settings wizard. | Implemented |
-| `src/pages/Players.jsx` | Re-export wrapper to Players OS. | Implemented wrapper |
-| `src/pages/PlayersOperatingSystem.jsx` | Re-export wrapper to v2 Players OS. | Implemented wrapper |
-| `src/pages/PlayersOperatingSystemV2.jsx` | Player Centre, Squad Management, lineup, tactics, assignments, profile modals, notes, avatars. | Implemented |
-| `src/pages/SessionPlanner.jsx` | Session Studio dashboard, workspace, autosave, activities, diagrams, saved sessions. | Implemented |
-| `src/pages/TacticalBoard.jsx` | Tactical workstation with saved boards, pitch objects, drawing tools, inspector, presentation mode. | Implemented |
-| `src/components/DiagramEditor.jsx` | Diagram editing surface used by session activities. | Implemented |
-| `src/components/DiagramPreview.jsx` | Diagram normalization, pitch layouts, diagram object rendering. | Implemented |
-| `src/components/TeamBadge.jsx` | Team crest/initials rendering across shell, dashboard, and setup. | Implemented |
-| `src/utils/storage.js` | localStorage get/set/remove helpers with app prefix. | Implemented |
-| `src/utils/teamIdentity.js` | Team identity normalization, theme variables, crest validation, theme application. | Implemented |
-
-## Implemented Modules
+## Module Details
 
 ### Dashboard / Home
 
-Uses real app data to show coach HQ status: player count, sessions, upcoming sessions, tactical board count, team identity, quick actions, this week panel, next match preview, and latest tactical board.
+| Field | Detail |
+| --- | --- |
+| File path | `src/pages/Dashboard.jsx` |
+| Status | Implemented / substantial |
+| Main functions | Coach HQ summary, player/session/tactical board stats, upcoming sessions, quick actions, team identity, this week panel, next match preview, tactical board preview. |
+| Depends on data | `players`, `footballCoachSessions`, `tacticalBoards`, `teamIdentity`. |
+| Current issues | Needs transformation into clearer Coach Mission Control; some sections are previews/static, including Match Centre preview, Club Announcements, and Player Progress. |
+| Next suggestions | Make next action, weekly priorities, player attention, next session, and next match context more actionable. |
+
+### Onboarding / Team Setup
+
+| Field | Detail |
+| --- | --- |
+| File paths | `src/pages/OnboardingFlow.jsx`, `src/pages/OnboardingFlowV2.jsx`, `src/pages/TeamSetup.jsx` |
+| Status | Implemented / substantial |
+| Main functions | First-run onboarding, coach profile, team identity, squad setup, season setup, coaching direction, review/launch, club colours, crest upload, settings update. |
+| Depends on data | `teamIdentity`, `players`, `coachCommandCentre:onboardingComplete`. |
+| Current issues | Explore Demo remains a future modal; onboarding should continue to be reviewed for desktop and responsive proportions. |
+| Next suggestions | Keep take-charge flow polished and ensure imports, image upload, and theme preview stay trustworthy. |
 
 ### Players OS
 
-Contains three major sections:
-
-- Player Centre: searchable/filterable player list, selected player detail, action menu, profile modal, notes, avatars, ratings, development focus.
-- Squad Management: lineup, tactics, assignments, player picker, bench management, formation preview.
-- Development Plans: polished future area, not a full workflow yet.
+| Field | Detail |
+| --- | --- |
+| File paths | `src/pages/Players.jsx`, `src/pages/PlayersOperatingSystem.jsx`, `src/pages/PlayersOperatingSystemV2.jsx` |
+| Status | Implemented / substantial |
+| Main functions | Player Centre, search/filter, selected player command panel, player profiles, add/edit/delete, notes, avatars, ratings, development focus, Squad Management, Lineup, Tactics, Assignments. |
+| Depends on data | `players`, `squadLineup`, `tacticalSetup`, `playerAssignments`. |
+| Current issues | Development Plans is future/coming soon; lineup is click-to-pick rather than drag-and-drop; no automated tests cover full flow. |
+| Next suggestions | Polish club theme integration, deepen player development timelines, build Development Plans, improve player review states. |
 
 ### Session Planner
 
-Contains:
-
-- Studio dashboard.
-- Create session route modal.
-- Workspace header and quality checklist.
-- Session basics, focus, and activity editor tabs.
-- Activity diagrams with `DiagramEditor` and `DiagramPreview`.
-- Autosaved session draft.
-- Saved session create/update/delete/duplicate flows.
-- Copy activity diagram to Tactical Board.
+| Field | Detail |
+| --- | --- |
+| File path | `src/pages/SessionPlanner.jsx` |
+| Status | Implemented / substantial |
+| Main functions | Session Studio dashboard, create session route modal, saved sessions, draft autosave, workspace tabs, session basics, training focus, activity editor, diagrams, quality checklist, copy diagram to Tactical Board. |
+| Depends on data | `footballCoachSessions`, `sessionDraft`, `players`, `teamIdentity`, tactical board callback. |
+| Current issues | AI assistant is future shell; Create Session Wizard can be refined; full PDF output is not implemented. |
+| Next suggestions | Redesign toward stronger Session Design Studio, add session review/reflection, improve create wizard, prepare PDF/export output. |
 
 ### Tactical Board
 
-Contains:
+| Field | Detail |
+| --- | --- |
+| File path | `src/pages/TacticalBoard.jsx` |
+| Status | Implemented / substantial |
+| Main functions | Saved board library, board metadata, pitch layouts, draggable home/away/neutral players, ball, cone, mini goal, arrow, line, area/zone, object inspector, notes, clear, duplicate, delete, presentation mode. |
+| Depends on data | `tacticalBoards`, diagram object structures from `DiagramPreview.jsx`. |
+| Current issues | Needs UI polish, better presentation-tool feel, faster object workflows, and eventual export. |
+| Next suggestions | Improve toolbar density, presets, board library scanning, selection states, presentation mode, and export image/PDF path. |
 
-- Saved board list.
-- Board title/type/layout controls.
-- Full SVG pitch workstation.
-- Home/away/neutral players, ball, cone, mini goal, arrow, line, area/zone objects.
-- Drag, resize, rotate, duplicate, delete, line handle controls.
-- Board notes.
-- Presentation mode.
+### Match Centre Placeholder
 
-### Team Setup / Onboarding
+| Field | Detail |
+| --- | --- |
+| File path | Disabled nav item in `App.jsx`; Dashboard preview only. |
+| Status | Future shell |
+| Main functions | Not implemented yet. |
+| Depends on data | Future match records. |
+| Current issues | No fixture/match data model exists yet. |
+| Next suggestions | Build a lightweight Match Centre foundation that connects match reflection to next training focus. |
 
-Onboarding handles first-run setup. Team Setup handles later updates. Both are tied to team identity, colours, crest, coach profile, season direction, and theme behavior.
+### Calendar Placeholder
 
-## Partial / Preview Modules
+| Field | Detail |
+| --- | --- |
+| File path | Disabled nav item in `App.jsx`. |
+| Status | Future shell |
+| Main functions | Not implemented yet. |
+| Depends on data | Future sessions and match records by date. |
+| Current issues | No calendar data model or UI exists yet. |
+| Next suggestions | Add only after sessions/matches need date-based review. |
 
-| Area | Current behavior | Next step |
+### Reports Placeholder
+
+| Field | Detail |
+| --- | --- |
+| File path | Disabled nav item in `App.jsx`. |
+| Status | Future shell |
+| Main functions | Not implemented yet. |
+| Depends on data | Players, sessions, boards, future match/feedback data. |
+| Current issues | No report model or output exists yet. |
+| Next suggestions | Build reports after feedback and match data exist. |
+
+### Shared Components
+
+| Component | Status | Purpose |
 | --- | --- | --- |
-| Dashboard Match Centre preview | Shows next fixture / opponent placeholder. | Build real Match Centre records. |
-| Dashboard Club Announcements | Static announcement cards. | Add announcement data model or remove until needed. |
-| Dashboard Player Progress | Preview metric and simple player spotlight. | Connect to real development tracking. |
-| Players Development Plans | Coming-soon section. | Add individual development plans and timelines. |
-| Session Planner AI assistant | Disabled shell. | Wait for backend/API infrastructure. |
+| `DiagramEditor.jsx` | Implemented | Edits diagrams attached to session activities. |
+| `DiagramPreview.jsx` | Implemented | Normalizes pitch layouts and diagram objects; renders previews and tactical board objects. |
+| `TeamBadge.jsx` | Implemented | Renders crest or initials across app shell, dashboard, and setup. |
 
-## Future Shells
+### Utils / Storage / Theme
 
-- Match Centre: fixtures, opponent, lineup, match notes, reflection, next training focus.
-- Calendar: coaching schedule view.
-- Reports: player/session/match summaries and export-ready reports.
+| Utility | Status | Purpose |
+| --- | --- | --- |
+| `storage.js` | Implemented | App-prefixed localStorage get/set/remove. |
+| `teamIdentity.js` | Implemented | Team identity defaults, normalization, crest validation, theme CSS variables, theme application. |
+
+## Important Accuracy Rules
+
+- Players is not a placeholder.
+- Session Planner is not a placeholder.
+- Tactical Board is not a placeholder.
+- Match Centre, Calendar, and Reports are future shells.
+- Session Planner AI assistant is a future shell and should not connect to APIs yet.
