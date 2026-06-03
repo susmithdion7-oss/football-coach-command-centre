@@ -2,7 +2,7 @@
 
 Coach Command Centre is currently a frontend-only localStorage MVP. There is no backend, database, login, cloud sync, or API layer.
 
-## Storage Helper
+## localStorage Prefix
 
 `src/utils/storage.js` owns the localStorage wrapper.
 
@@ -16,6 +16,8 @@ Every saved key is stored as:
 footballCoachCommandCentre:<key>
 ```
 
+## Storage Helper Functions
+
 | Function | Purpose |
 | --- | --- |
 | `getStorageItem(key, fallbackValue)` | Reads JSON from localStorage and returns fallback when missing or invalid. |
@@ -26,7 +28,7 @@ footballCoachCommandCentre:<key>
 
 | Logical key | Actual browser key | Owner / usage |
 | --- | --- | --- |
-| `players` | `footballCoachCommandCentre:players` | Main player records used by Dashboard, Players OS, Session Planner context, and onboarding imports. |
+| `players` | `footballCoachCommandCentre:players` | Player records used by Dashboard, Players OS, Session Planner context, and onboarding import. |
 | `footballCoachSessions` | `footballCoachCommandCentre:footballCoachSessions` | Saved session records used by Dashboard and Session Planner. |
 | `tacticalBoards` | `footballCoachCommandCentre:tacticalBoards` | Saved tactical board records used by Dashboard and Tactical Board. |
 | `teamIdentity` | `footballCoachCommandCentre:teamIdentity` | Team identity, colours, crest, coach profile, season metadata, and setup status. |
@@ -36,7 +38,7 @@ footballCoachCommandCentre:<key>
 | `playerAssignments` | `footballCoachCommandCentre:playerAssignments` | Players OS captain/set-piece/role assignment state. |
 | `coachCommandCentre:onboardingComplete` | `footballCoachCommandCentre:coachCommandCentre:onboardingComplete` | Onboarding completion marker written by `App.jsx`. |
 
-## Data Ownership
+## Data Ownership Diagram
 
 ```mermaid
 flowchart TD
@@ -48,63 +50,38 @@ flowchart TD
   PlayersOS[PlayersOperatingSystemV2.jsx] --> Lineup[squadLineup]
   PlayersOS --> Tactic[tacticalSetup]
   PlayersOS --> Assignments[playerAssignments]
+  Onboarding[OnboardingFlowV2.jsx] --> Players
+  Onboarding --> Identity
 ```
 
-## Player Data
+## Data Shape Overview
 
-Player records support fields such as:
+### Players
 
-- `id`
-- `fullName`
-- `shirtNumber`
-- `age`
-- `mainPosition`
-- `secondaryPosition`
-- `preferredFoot`
-- `status`
-- `developmentFocus`
-- `technicalRating`
-- `physicalRating`
-- `tacticalRating`
-- `mentalRating`
-- `strengths`
-- `areasToImprove`
-- `coachNotes`
-- `avatarDataUrl`
-- `notes`
-- `createdAt`
-- `updatedAt`
+Player records generally include:
 
-Player images are stored as data URLs inside player records.
+- identity: `id`, `fullName`, `shirtNumber`, `age`
+- position: `mainPosition`, `secondaryPosition`, `preferredFoot`
+- coaching: `status`, `developmentFocus`, `strengths`, `areasToImprove`, `coachNotes`, `notes`
+- ratings: `technicalRating`, `physicalRating`, `tacticalRating`, `mentalRating`
+- media: `avatarDataUrl`
+- metadata: `createdAt`, `updatedAt`
 
-## Session Data
+### Sessions
 
-Session records support fields such as:
+Session records generally include:
 
-- `id`
-- `sessionTitle`
-- `date`
-- `ageGroup`
-- `duration`
-- `numberOfPlayers`
-- `abilityLevel`
-- `pitchSize`
-- `equipmentAvailable`
-- `status`
-- `mainGameMoment`
-- `primaryTopic`
-- `topicTags`
-- `sessionType`
-- `coachingStyle`
-- `activities`
-- `createdAt`
-- `updatedAt`
+- identity: `id`, `sessionTitle`, `date`, `status`
+- setup: `ageGroup`, `duration`, `numberOfPlayers`, `abilityLevel`, `pitchSize`, `equipmentAvailable`
+- focus: `mainGameMoment`, `primaryTopic`, `topicTags`, `sessionType`, `coachingStyle`
+- design: `activities`
+- metadata: `createdAt`, `updatedAt`
 
-Activities can include embedded diagrams. These diagrams are normalized through `DiagramPreview.jsx` and can be copied into Tactical Board.
+Activities can include setup, rules, coaching points, player questions, progression, regression, coach notes, diagram notes, and embedded diagrams.
 
-## Tactical Board Data
+### Tactical Boards
 
-Board records support fields such as:
+Board records generally include:
 
 - `id`
 - `title`
@@ -115,20 +92,48 @@ Board records support fields such as:
 - `createdAt`
 - `updatedAt`
 
-Board objects include home/away/neutral players, balls, cones, mini goals, arrows, lines, and areas/zones.
+Objects can include home players, away players, neutral players, balls, cones, mini goals, arrows, lines, and areas/zones.
 
-## Team Identity Data
+### Team Identity
 
-Team identity includes team and coach metadata, colours, crest, goals, season information, and `setupCompleted`. `teamIdentity.js` normalizes data, validates crest files, derives CSS variables, and applies theme values to `document.documentElement`.
+Team identity records include team, coach, theme, season, crest, and setup fields. `teamIdentity.js` normalizes the identity, validates crest objects, generates CSS variables, and applies theme values.
 
-Team crests and coach photos are stored as data URL objects inside saved identity records.
+## Avatar / Crest / Photo Storage
+
+- Team crests are stored as data object/data URL records inside `teamIdentity`.
+- Coach photos are stored as data object/data URL records inside `teamIdentity` after onboarding.
+- Player avatars are stored as data URLs inside player records.
+- These records can become large; future cloud migration should move images to storage buckets.
+
+## Draft Protection
+
+`sessionDraft` protects unsaved Session Planner work. It stores the current form data, selected session id, saved snapshot, and last autosave information.
+
+Rules:
+
+- Do not delete `sessionDraft` casually.
+- Do not break draft restoration.
+- If changing Session Planner data shape, maintain draft compatibility.
 
 ## Data Protection Rules
 
-- Do not rename localStorage keys without a migration plan.
+- Do not rename localStorage keys without migration.
 - Do not clear localStorage.
 - Do not overwrite saved records with incomplete defaults.
 - Keep new fields optional and backward compatible.
-- Preserve session draft recovery.
-- Preserve player avatars, coach photos, team crests, and diagrams.
-- If a future backend is added, document migration from these localStorage keys first.
+- Preserve player avatars, coach photos, team crests, diagrams, saved boards, lineup, tactics, assignments, and session drafts.
+- Test refresh persistence after any data-related change.
+
+## Future Supabase / Firebase Migration Suggestions
+
+Before migration:
+
+1. Freeze current localStorage data shape documentation.
+2. Add local export/import backup.
+3. Define database tables for teams, players, sessions, session activities, tactical boards, board objects, lineups, tactics, assignments, and feedback.
+4. Decide whether a coach account owns one team, multiple teams, or multiple season workspaces.
+5. Move data URL images to cloud storage with references.
+6. Create a migration path from browser-local records.
+7. Keep local fallback or import support for existing users.
+
+Never assume browser-local data can be discarded.
