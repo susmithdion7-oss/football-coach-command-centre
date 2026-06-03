@@ -46,17 +46,18 @@ npm run build
 npm run preview
 ```
 
-## Documentation
+## Core Project Documents
 
-Start here for future development work:
+Future Codex sessions should start here:
 
 - [`PROJECT_CONTEXT.md`](PROJECT_CONTEXT.md) - product vision, current state, module direction, and what not to build yet.
 - [`PRODUCT_BRIEF.md`](PRODUCT_BRIEF.md) - current product brief aligned to the live localStorage MVP.
 - [`CODEX_RULES.md`](CODEX_RULES.md) - development rules, data protection, UI principles, testing expectations, and PR guidance.
 - [`ROADMAP.md`](ROADMAP.md) - staged roadmap for local MVP, cloud version, and future AI.
+- [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) - long-term UI/UX rules and unified product design language.
 - [`DEVELOPMENT_LOG.md`](DEVELOPMENT_LOG.md) - change history and future log template.
 
-Detailed docs:
+## Detailed Docs
 
 - [`docs/PROJECT_OVERVIEW.md`](docs/PROJECT_OVERVIEW.md)
 - [`docs/MODULE_GUIDE.md`](docs/MODULE_GUIDE.md)
@@ -64,6 +65,9 @@ Detailed docs:
 - [`docs/UI_DESIGN_GUIDE.md`](docs/UI_DESIGN_GUIDE.md)
 - [`docs/DEVELOPMENT_TASKS.md`](docs/DEVELOPMENT_TASKS.md)
 - [`docs/ITERATION_PLAN.md`](docs/ITERATION_PLAN.md)
+- [`docs/CODEX_WORKFLOW.md`](docs/CODEX_WORKFLOW.md)
+- [`docs/FEATURE_BACKLOG.md`](docs/FEATURE_BACKLOG.md)
+- [`docs/QA_CHECKLIST.md`](docs/QA_CHECKLIST.md)
 
 ## Important Development Rule
 
