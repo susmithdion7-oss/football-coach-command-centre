@@ -170,6 +170,129 @@ function getPlayerInitials(player) {
   return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
 }
 
+function splitPlayerImportLine(line) {
+  const cells = []
+  let currentCell = ''
+  let isInsideQuotes = false
+
+  for (let index = 0; index < line.length; index += 1) {
+    const character = line[index]
+    const nextCharacter = line[index + 1]
+
+    if (character === '"' && nextCharacter === '"') {
+      currentCell += '"'
+      index += 1
+      continue
+    }
+
+    if (character === '"') {
+      isInsideQuotes = !isInsideQuotes
+      continue
+    }
+
+    if (character === ',' && !isInsideQuotes) {
+      cells.push(currentCell.trim())
+      currentCell = ''
+      continue
+    }
+
+    currentCell += character
+  }
+
+  cells.push(currentCell.trim())
+  return cells
+}
+
+function normalisePreferredFoot(value = '') {
+  const safeValue = String(value).trim().toLowerCase()
+
+  if (['right', 'r'].includes(safeValue)) {
+    return 'Right'
+  }
+
+  if (['left', 'l'].includes(safeValue)) {
+    return 'Left'
+  }
+
+  if (['both', 'either', 'two-footed', 'two footed'].includes(safeValue)) {
+    return 'Both'
+  }
+
+  return value ? String(value).trim() : ''
+}
+
+function getImportStatus(player) {
+  const missing = []
+
+  if (!player.shirtNumber) {
+    missing.push('number')
+  }
+
+  if (!player.mainPosition) {
+    missing.push('position')
+  }
+
+  if (!player.preferredFoot) {
+    missing.push('foot')
+  }
+
+  if (missing.length === 0) {
+    return 'Ready'
+  }
+
+  if (missing.length === 1) {
+    return `Missing ${missing[0]}`
+  }
+
+  return 'Needs details'
+}
+
+function createImportedPlayer(row) {
+  const fullName = String(row.fullName || '').trim()
+
+  if (!fullName) {
+    return null
+  }
+
+  const player = {
+    ...emptyPlayer,
+    fullName,
+    shirtNumber: String(row.shirtNumber || '').trim(),
+    mainPosition: String(row.mainPosition || '').trim(),
+    preferredFoot: normalisePreferredFoot(row.preferredFoot),
+    coachNotes: 'Imported from Players. Add more detail when you are ready.',
+  }
+  const importStatus = getImportStatus(player)
+
+  return {
+    ...player,
+    status: importStatus === 'Ready' ? 'On Track' : 'Needs Details',
+    importStatus,
+  }
+}
+
+function isLikelyPlayerImportHeader(line) {
+  const cells = splitPlayerImportLine(line).map((cell) => cell.toLowerCase().replace(/[^a-z0-9]/g, ''))
+
+  return cells.includes('name') || cells.includes('fullname') || cells.includes('playername')
+}
+
+function parseImportedPlayers(value) {
+  const lines = value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+
+  const playerLines = lines[0] && isLikelyPlayerImportHeader(lines[0]) ? lines.slice(1) : lines
+
+  return playerLines
+    .map((line) => {
+      const [fullName, shirtNumber, mainPosition, preferredFoot] = splitPlayerImportLine(line)
+      return createImportedPlayer({ fullName, shirtNumber, mainPosition, preferredFoot })
+    })
+    .filter(Boolean)
+}
+
 function getAvatarUrl(player = {}) {
   return player.avatarDataUrl || player.avatar?.dataUrl || player.coachPhoto || ''
 }
@@ -475,13 +598,18 @@ function PlayersOperatingSystemV2({ players = [], onAddPlayer, onDeletePlayer, o
   const [focusPlayerId, setFocusPlayerId] = useState(null)
   const [focusValue, setFocusValue] = useState('')
   const [playerPicker, setPlayerPicker] = useState(null)
+  const [importModalMode, setImportModalMode] = useState(null)
+  const [importText, setImportText] = useState('')
+  const [importMessage, setImportMessage] = useState('')
   const [selectedAssignmentRoleId, setSelectedAssignmentRoleId] = useState('captain')
   const [lineup, setLineup] = useState(() => normaliseLineup(getStorageItem(lineupStorageKey, null)))
   const [tactic, setTactic] = useState(() => normaliseTactic(getStorageItem(tacticalStorageKey, null)))
   const [assignments, setAssignments] = useState(() => getStorageItem(assignmentsStorageKey, {}))
   const menuRef = useRef(null)
 
+  const hasPlayers = players.length > 0
   const positionOptions = useMemo(() => getPositionOptions(players), [players])
+  const importPreviewPlayers = useMemo(() => parseImportedPlayers(importText), [importText])
   const filteredPlayers = useMemo(() => {
     const normalisedSearch = searchTerm.trim().toLowerCase()
 
@@ -509,6 +637,8 @@ function PlayersOperatingSystemV2({ players = [], onAddPlayer, onDeletePlayer, o
     if (!players.length) {
       setSelectedPlayerId(null)
       setSelectedLineupPlayerId(null)
+      setPlayerPicker(null)
+      setActionMenu(null)
       return
     }
 
@@ -581,6 +711,48 @@ function PlayersOperatingSystemV2({ players = [], onAddPlayer, onDeletePlayer, o
     setFormData(emptyPlayer)
     setAvatarMessage('')
     setActionMenu(null)
+  }
+
+  function openImportModal(mode = 'import') {
+    setImportModalMode(mode)
+    setImportText('')
+    setImportMessage('')
+    setActionMenu(null)
+  }
+
+  function closeImportModal() {
+    setImportModalMode(null)
+    setImportText('')
+    setImportMessage('')
+  }
+
+  function confirmImportPlayers(event) {
+    event.preventDefault()
+
+    if (importPreviewPlayers.length === 0) {
+      setImportMessage('Paste at least one player name before importing.')
+      return
+    }
+
+    let firstImportedPlayerId = null
+
+    importPreviewPlayers.forEach((player) => {
+      const newPlayerId = onAddPlayer(player)
+
+      if (!firstImportedPlayerId) {
+        firstImportedPlayerId = newPlayerId
+      }
+    })
+
+    if (firstImportedPlayerId) {
+      setSelectedPlayerId(firstImportedPlayerId)
+      setSelectedLineupPlayerId(firstImportedPlayerId)
+    }
+
+    setActiveSection('playerCentre')
+    clearFilters()
+    showToast(`${importPreviewPlayers.length} players imported`)
+    closeImportModal()
   }
 
   function startEditingPlayer(playerId = selectedPlayerId) {
@@ -880,6 +1052,12 @@ function PlayersOperatingSystemV2({ players = [], onAddPlayer, onDeletePlayer, o
   }
 
   function openPlayerPicker(context) {
+    if (!hasPlayers) {
+      setPlayerPicker(null)
+      showToast('Add players before using the player picker.')
+      return
+    }
+
     setPlayerPicker(context)
   }
 
@@ -934,7 +1112,7 @@ function PlayersOperatingSystemV2({ players = [], onAddPlayer, onDeletePlayer, o
             <span>Search</span>
             <input onChange={(event) => setSearchTerm(event.target.value)} placeholder="Search players" type="search" value={searchTerm} />
           </label>
-          <button className="players-os-secondary" type="button" onClick={clearFilters}>Clear filters</button>
+          <button className="players-os-secondary" type="button" onClick={() => openImportModal('import')}>Import Squad</button>
           <button className="players-os-primary" type="button" onClick={startAddingPlayer}>Add Player</button>
         </div>
       </header>
@@ -956,8 +1134,10 @@ function PlayersOperatingSystemV2({ players = [], onAddPlayer, onDeletePlayer, o
           onAddPlayer={startAddingPlayer}
           onClearFilters={clearFilters}
           onEditPlayer={startEditingPlayer}
+          onImportSquad={() => openImportModal('import')}
           onOpenNote={openNoteForPlayer}
           onOpenProfile={setProfilePlayerId}
+          onPastePlayers={() => openImportModal('paste')}
           onPositionFilter={setPositionFilter}
           onSearch={setSearchTerm}
           onSelectPlayer={setSelectedPlayerId}
@@ -983,7 +1163,10 @@ function PlayersOperatingSystemV2({ players = [], onAddPlayer, onDeletePlayer, o
           onChangeAssignment={updateAssignment}
           onChangeLineupFormation={setLineupFormation}
           onChangeSquadTab={setActiveSquadTab}
+          onBackToPlayerCentre={() => setActiveSection('playerCentre')}
           onEditPlayer={startEditingPlayer}
+          onImportSquad={() => openImportModal('import')}
+          onAddPlayer={startAddingPlayer}
           onMoveBench={movePlayerToBench}
           onOpenNote={openNoteForPlayer}
           onOpenPicker={openPlayerPicker}
@@ -1005,7 +1188,7 @@ function PlayersOperatingSystemV2({ players = [], onAddPlayer, onDeletePlayer, o
         />
       )}
 
-      {activeSection === 'developmentPlans' && <DevelopmentPlans focusAreas={focusAreas} players={players} />}
+      {activeSection === 'developmentPlans' && <DevelopmentPlans focusAreas={focusAreas} onAddPlayer={startAddingPlayer} onImportSquad={() => openImportModal('import')} players={players} />}
 
       {actionMenu && (
         <PlayerActionMenu
@@ -1066,7 +1249,22 @@ function PlayersOperatingSystemV2({ players = [], onAddPlayer, onDeletePlayer, o
         <FocusModal focusValue={focusValue} onChange={setFocusValue} onClose={() => setFocusPlayerId(null)} onSave={saveDevelopmentFocus} player={focusPlayer} />
       )}
 
-      {playerPicker && (
+      {importModalMode && (
+        <SquadImportModal
+          importMessage={importMessage}
+          mode={importModalMode}
+          onChange={(nextText) => {
+            setImportText(nextText)
+            setImportMessage('')
+          }}
+          onClose={closeImportModal}
+          onConfirm={confirmImportPlayers}
+          previewPlayers={importPreviewPlayers}
+          value={importText}
+        />
+      )}
+
+      {playerPicker && hasPlayers && (
         <PlayerPickerModal
           context={playerPicker}
           onClear={clearPickerSelection}
@@ -1083,7 +1281,17 @@ function Toast({ message }) {
   return <div className={message ? 'players-os-toast show' : 'players-os-toast'}>{message}</div>
 }
 
-function PlayerCentre({ filteredPlayers, onActionMenu, onAddPlayer, onClearFilters, onEditPlayer, onOpenNote, onOpenProfile, onPositionFilter, onSearch, onSelectPlayer, onStatusFilter, players, positionFilter, positionOptions, searchTerm, selectedPlayer, selectedPlayerId, statusFilter }) {
+function PlayerCentre({ filteredPlayers, onActionMenu, onAddPlayer, onClearFilters, onEditPlayer, onImportSquad, onOpenNote, onOpenProfile, onPastePlayers, onPositionFilter, onSearch, onSelectPlayer, onStatusFilter, players, positionFilter, positionOptions, searchTerm, selectedPlayer, selectedPlayerId, statusFilter }) {
+  if (players.length === 0) {
+    return (
+      <EmptySquadExperience
+        onAddPlayer={onAddPlayer}
+        onImportSquad={onImportSquad}
+        onPastePlayers={onPastePlayers}
+      />
+    )
+  }
+
   return (
     <div className="player-centre-grid player-centre-grid-v2">
       <aside className="player-list-panel dark-panel">
@@ -1149,6 +1357,49 @@ function PlayerCentre({ filteredPlayers, onActionMenu, onAddPlayer, onClearFilte
         player={selectedPlayer}
       />
     </div>
+  )
+}
+
+function EmptySquadExperience({ onAddPlayer, onImportSquad, onPastePlayers }) {
+  const trackingItems = [
+    'Position',
+    'Preferred foot',
+    'Development focus',
+    'Coach notes',
+    'Training feedback',
+    'Match feedback',
+  ]
+
+  return (
+    <section className="players-empty-squad-shell">
+      <div className="players-empty-squad-card dark-panel">
+        <div className="empty-squad-copy">
+          <span className="players-os-kicker">Player Centre</span>
+          <div className="empty-state-icon" aria-hidden="true">PL</div>
+          <h4>Build your squad</h4>
+          <p>Import your squad list or add players manually. You can complete player details later.</p>
+          <div className="empty-squad-actions">
+            <button className="players-os-primary" type="button" onClick={onImportSquad}>Import Squad List</button>
+            <button className="players-os-secondary" type="button" onClick={onPastePlayers}>Paste Player List</button>
+            <button className="players-os-secondary" type="button" onClick={onAddPlayer}>Add Player Manually</button>
+          </div>
+          <small>Only player names are required to get started. You can add details later.</small>
+        </div>
+
+        <aside className="empty-tracking-card">
+          <span className="players-os-kicker">What you can track</span>
+          <div className="tracking-list">
+            {trackingItems.map((item) => (
+              <div key={item}>
+                <span aria-hidden="true" />
+                <strong>{item}</strong>
+              </div>
+            ))}
+          </div>
+          <p className="empty-squad-note">Start light, then build a richer player profile as training and match feedback comes in.</p>
+        </aside>
+      </div>
+    </section>
   )
 }
 
@@ -1312,7 +1563,17 @@ function ActionGroup({ children, title }) {
   )
 }
 
-function SquadManagement({ activeSquadTab, assignments, focusAreas, lineup, onAddBench, onAssignSlot, onChangeAssignment, onChangeLineupFormation, onChangeSquadTab, onEditPlayer, onMoveBench, onOpenNote, onOpenPicker, onOpenProfile, onRemoveBench, onRemoveFromXI, onResetLineup, onSaveLineup, onSaveTactic, onSelectAssignmentRole, onSelectLineupPlayer, onTacticChange, onTacticSettingChange, players, selectedAssignmentRole, selectedLineupPlayer, selectedLineupPlayerId, tactic }) {
+function SquadManagement({ activeSquadTab, assignments, focusAreas, lineup, onAddBench, onAddPlayer, onAssignSlot, onBackToPlayerCentre, onChangeAssignment, onChangeLineupFormation, onChangeSquadTab, onEditPlayer, onImportSquad, onMoveBench, onOpenNote, onOpenPicker, onOpenProfile, onRemoveBench, onRemoveFromXI, onResetLineup, onSaveLineup, onSaveTactic, onSelectAssignmentRole, onSelectLineupPlayer, onTacticChange, onTacticSettingChange, players, selectedAssignmentRole, selectedLineupPlayer, selectedLineupPlayerId, tactic }) {
+  if (players.length === 0) {
+    return (
+      <SquadManagementLockedState
+        onAddPlayer={onAddPlayer}
+        onBackToPlayerCentre={onBackToPlayerCentre}
+        onImportSquad={onImportSquad}
+      />
+    )
+  }
+
   return (
     <section className="squad-management-section squad-management-section-v2">
       <div className="squad-management-toolbar compact-squad-toolbar">
@@ -1365,6 +1626,43 @@ function SquadManagement({ activeSquadTab, assignments, focusAreas, lineup, onAd
           selectedRole={selectedAssignmentRole}
         />
       )}
+    </section>
+  )
+}
+
+function SquadManagementLockedState({ onAddPlayer, onBackToPlayerCentre, onImportSquad }) {
+  return (
+    <section className="squad-management-section squad-management-section-v2 squad-management-empty-state">
+      <div className="players-locked-workspace dark-panel">
+        <div className="locked-copy-block">
+          <span className="players-os-kicker">Squad Management</span>
+          <h4>Build your squad before creating a lineup</h4>
+          <p>Add players first, then you can build your starting XI, tactics and matchday roles.</p>
+          <div className="empty-squad-actions">
+            <button className="players-os-primary" type="button" onClick={onImportSquad}>Import Squad List</button>
+            <button className="players-os-secondary" type="button" onClick={onAddPlayer}>Add Player Manually</button>
+            <button className="players-os-secondary" type="button" onClick={onBackToPlayerCentre}>Back to Player Centre</button>
+          </div>
+        </div>
+
+        <div className="unlock-preview-grid" aria-label="Squad Management unlock preview">
+          <article>
+            <span>01</span>
+            <strong>Lineup</strong>
+            <p>Choose a formation and build your starting XI.</p>
+          </article>
+          <article>
+            <span>02</span>
+            <strong>Tactics</strong>
+            <p>Set team style, shape and match preparation ideas.</p>
+          </article>
+          <article>
+            <span>03</span>
+            <strong>Assignments</strong>
+            <p>Assign captains, set pieces and matchday responsibilities.</p>
+          </article>
+        </div>
+      </div>
     </section>
   )
 }
@@ -1666,7 +1964,21 @@ function AssignmentsTab({ assignments, onChangeAssignment, onOpenPicker, onSelec
   )
 }
 
-function DevelopmentPlans({ focusAreas, players }) {
+function DevelopmentPlans({ focusAreas, onAddPlayer, onImportSquad, players }) {
+  if (players.length === 0) {
+    return (
+      <section className="development-plans-page development-plans-page-v2 development-plans-locked dark-panel">
+        <span className="players-os-kicker">Development Plans</span>
+        <h4>Development Plans will unlock after you add players.</h4>
+        <p>Add your squad first, then this area can become the home for individual plans, feedback trends and player progress.</p>
+        <div className="empty-squad-actions">
+          <button className="players-os-primary" type="button" onClick={onImportSquad}>Import Squad List</button>
+          <button className="players-os-secondary" type="button" onClick={onAddPlayer}>Add Player Manually</button>
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section className="development-plans-page development-plans-page-v2 dark-panel">
       <span className="players-os-kicker">Development Plans</span>
@@ -1695,6 +2007,82 @@ function DevelopmentPlans({ focusAreas, players }) {
         <strong>Coming Soon</strong>
       </div>
     </section>
+  )
+}
+
+function SquadImportModal({ importMessage, mode, onChange, onClose, onConfirm, previewPlayers, value }) {
+  const title = mode === 'paste' ? 'Paste Player List' : 'Import Squad List'
+  const readyCount = previewPlayers.filter((player) => player.importStatus === 'Ready').length
+  const needsDetailCount = previewPlayers.length - readyCount
+
+  return (
+    <div className="players-os-modal-backdrop squad-import-backdrop">
+      <form className="squad-import-modal dark-panel" onSubmit={onConfirm}>
+        <div className="panel-topline mini-topline">
+          <div>
+            <span className="players-os-kicker">Squad setup</span>
+            <h4>{title}</h4>
+          </div>
+          <button type="button" onClick={onClose}>Close</button>
+        </div>
+
+        <p className="import-helper-copy">Paste one player per line. Use commas for optional details: name, number, position, preferred foot.</p>
+
+        <label className="squad-import-textarea">
+          <span>Player list</span>
+          <textarea
+            onChange={(event) => onChange(event.target.value)}
+            placeholder={'Jake Smith, 7, CM, Right\nOscar Brown, 9, ST, Left\nEthan Jones'}
+            rows="8"
+            value={value}
+          />
+        </label>
+
+        <div className="squad-import-summary">
+          <article>
+            <span>Preview</span>
+            <strong>{previewPlayers.length}</strong>
+            <small>players found</small>
+          </article>
+          <article>
+            <span>Ready</span>
+            <strong>{readyCount}</strong>
+            <small>complete rows</small>
+          </article>
+          <article>
+            <span>Later</span>
+            <strong>{needsDetailCount}</strong>
+            <small>need details</small>
+          </article>
+        </div>
+
+        {previewPlayers.length > 0 ? (
+          <div className="squad-import-preview-list">
+            {previewPlayers.slice(0, 6).map((player, index) => (
+              <article key={`${player.fullName}-${index}`}>
+                <span>{player.shirtNumber || '--'}</span>
+                <strong>{player.fullName}</strong>
+                <small>{player.mainPosition || 'Position later'} / {player.preferredFoot || 'Foot later'}</small>
+                <em>{player.importStatus}</em>
+              </article>
+            ))}
+            {previewPlayers.length > 6 && <p>{previewPlayers.length - 6} more players will be imported.</p>}
+          </div>
+        ) : (
+          <div className="squad-import-empty-preview">
+            <strong>No players previewed yet.</strong>
+            <p>Only player names are required to get started.</p>
+          </div>
+        )}
+
+        {importMessage && <p className="squad-import-message">{importMessage}</p>}
+
+        <div className="drawer-actions">
+          <button className="players-os-secondary" type="button" onClick={onClose}>Cancel</button>
+          <button className="players-os-primary" type="submit">Confirm Import</button>
+        </div>
+      </form>
+    </div>
   )
 }
 
@@ -1804,7 +2192,7 @@ function MiniFormationPreview({ lineup, slots }) {
 
 function PlayerEditorModal({ avatarMessage, formData, formMode, onAvatarFile, onCancel, onChange, onRemoveAvatar, onSubmit }) {
   return (
-    <div className="players-os-modal-backdrop">
+    <div className="players-os-modal-backdrop player-editor-backdrop">
       <form className="players-os-drawer" onSubmit={onSubmit}>
         <div className="panel-topline mini-topline">
           <div>
