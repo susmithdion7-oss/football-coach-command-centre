@@ -1,102 +1,214 @@
 # UI Design Guide
 
-Coach Command Centre should feel like a premium football coaching workspace: practical, immersive, coach-first, and shaped by the user's team identity.
+Coach Command Centre / 教练罗盘 should feel like a unified premium football coaching workspace. This guide documents the current UI diagnosis and the intended design direction.
+
+## Current UI Diagnosis
+
+The app has strong module foundations but should become more visually unified.
+
+Current strengths:
+
+- Strong Coach HQ product concept.
+- Dynamic club identity and theme variables.
+- Substantial Players OS, Session Planner, and Tactical Board workflows.
+- Dark immersive Players workspace.
+- Tactical Board presentation mode.
+- Onboarding live preview and take-charge flow.
+
+Current issues:
+
+- Some modules feel like separate design experiments.
+- Dashboard still mixes real data and future preview content.
+- Session Planner needs stronger design-studio hierarchy.
+- Tactical Board needs a more polished presentation-tool feel.
+- Disabled future actions need consistent treatment.
+- Some layouts need responsive and density review.
+
+## Final UI Direction
+
+The final product should feel like:
+
+- Coach Mission Control for the dashboard.
+- Player Operating System for Players.
+- Session Design Studio for Session Planner.
+- Tactical Workstation for Tactical Board.
+- Take Charge Onboarding for first-time setup.
+
+The whole app must feel like one product, not page-by-page experiments.
 
 ## Design Principles
 
 - Coach-first, not admin-first.
-- Full-width workspace layouts.
-- Strong hierarchy and quick scanning.
-- Avoid giant default forms.
-- Use tabs, modals, drawers, panels, and workspaces for depth.
-- Keep lists scrollable inside panels where needed.
-- Preserve dynamic club identity across the app.
-- Avoid spreadsheet-like layouts unless the data truly needs a table.
+- No giant forms on first load.
+- No wasted whitespace.
+- No disconnected page themes.
+- Use club colours consistently.
+- Use light surfaces for planning/review and dark surfaces for immersive command work.
+- Keep dense modules scannable.
+- Use modals/drawers/tabs for deeper information.
+- Keep future features visibly disabled or clearly marked as preview.
 
-## CSS Import Order
+## Spacing
 
-`src/main.jsx` imports CSS in this order:
+- Use full-width workspace layouts for major modules.
+- Use compact panels for dense information.
+- Avoid large empty hero sections once real data exists.
+- Keep action areas close to the content they affect.
+- Prefer internal scroll areas for long lists.
 
-| CSS file | Purpose |
+## Colours
+
+- Use team identity variables for accent and active states.
+- Keep neutral surfaces readable.
+- Use danger colours only for destructive actions.
+- Avoid turning a whole page into one flat club-colour block.
+- Test bright and dark team colours.
+
+## Dark / Light Usage
+
+Light workspaces:
+
+- Dashboard content areas.
+- Session Planner dashboard/workspace.
+- Team Setup forms.
+- Reports and future PDF previews.
+
+Dark workspaces:
+
+- Players OS.
+- Tactical Board.
+- Presentation-style command panels.
+
+Dark modules must still inherit club colour accents.
+
+## Club Theme Integration
+
+`teamIdentity.js` provides:
+
+- `--club-primary`
+- `--club-primary-dark`
+- `--club-primary-soft`
+- `--club-secondary`
+- `--club-accent`
+- `--club-on-primary`
+- `--club-on-secondary`
+
+Use these for selected states, active tabs, primary highlights, pitch accents, and key callouts.
+
+## Coach Mission Control Dashboard
+
+Dashboard should show:
+
+- what matters today
+- next session
+- this week's training priorities
+- players needing attention
+- next match context
+- recent tactical boards
+- coach/team goals
+- quick actions
+
+Avoid:
+
+- static welcome panels that waste space
+- unclear preview data
+- metrics that do not guide action
+
+## Player Operating System
+
+Players should show:
+
+- squad overview
+- Player Centre list/detail
+- profile modals
+- notes timeline
+- development focus
+- lineup/tactics/assignments
+- future Development Plans
+
+Avoid:
+
+- spreadsheet-first layout
+- giant add-player form on load
+- dark styling disconnected from club theme
+
+## Session Design Studio
+
+Session Planner should show:
+
+- dashboard/library/drafts
+- create session wizard
+- session workspace
+- session timeline
+- one activity editor at a time
+- diagram tools near activity context
+- quality checklist
+- reflection and output readiness
+
+Avoid:
+
+- one giant session form
+- hidden draft state
+- excessive page scrolling
+
+## Tactical Workstation
+
+Tactical Board should show:
+
+- pitch as the main stage
+- object toolbar
+- saved board library
+- inspector controls
+- board notes
+- presentation mode
+- future export path
+
+Avoid:
+
+- small pitch area
+- controls too far from the pitch
+- unclear selected states
+
+## Take Charge Onboarding
+
+Onboarding should show:
+
+- coach identity
+- team identity
+- squad setup
+- season rhythm
+- coaching direction
+- review and launch
+
+Avoid:
+
+- overwhelming first-time users
+- unreliable import preview
+- theme choices that do not appear in preview
+
+## Existing CSS References
+
+| CSS file | Main role |
 | --- | --- |
-| `styles.css` | Global app shell, base tokens, sidebar, topbar, buttons, shared cards/forms. |
-| `diagram.css` | Diagram pitch and diagram object styling. |
-| `tacticalBoard.css` | Tactical Board workstation layout, saved boards, inspector, presentation mode. |
-| `teamWizard.css` | Team setup wizard styles. |
-| `crest.css` | Team badge and crest rendering. |
-| `dashboard.css` | Dashboard / Coach HQ layouts and cards. |
-| `playersHub.css` | Earlier players hub styles kept for compatibility. |
-| `playersOperatingSystem.css` | Players OS dark workspace and module structure. |
-| `playersOperatingSystemPolish.css` | Polished Players OS layer tied to club theme variables. |
-| `sessionPlanner.css` | Session Planner core styles. |
-| `sessionPlannerConcept.css` | Session Studio concept/workspace styles. |
-| `onboarding.css` | Onboarding base flow. |
-| `onboardingPolish.css` | Onboarding polish layer. |
-| `onboardingFinalConcept.css` | Final concept visual layer for onboarding. |
-| `onboardingDesktopProportions.css` | Large desktop onboarding proportions. |
+| `styles.css` | Global shell, shared base styles. |
+| `dashboard.css` | Dashboard / Coach HQ. |
+| `playersOperatingSystem.css` | Players OS structure. |
+| `playersOperatingSystemPolish.css` | Players OS polish and club theme integration. |
+| `sessionPlanner.css` | Session Planner base. |
+| `sessionPlannerConcept.css` | Session Studio concept/workspace. |
+| `tacticalBoard.css` | Tactical Board workstation. |
+| `diagram.css` | Pitch and diagram objects. |
+| `teamWizard.css` | Team setup wizard. |
+| `crest.css` | Team badge/crest. |
+| `onboarding*.css` | Onboarding layers and desktop proportions. |
 
-## Theme Variables
+## Review Checklist For UI Tasks
 
-`src/utils/teamIdentity.js` sets CSS variables on `document.documentElement`:
-
-| Variable | Meaning |
-| --- | --- |
-| `--club-primary` | Main team UI colour. |
-| `--club-primary-dark` | Darker primary shade. |
-| `--club-primary-soft` | Soft transparent primary shade. |
-| `--club-secondary` | Secondary team UI colour. |
-| `--club-accent` | Home kit / accent colour. |
-| `--club-on-primary` | Text colour on primary backgrounds. |
-| `--club-on-secondary` | Text colour on secondary backgrounds. |
-
-Use these variables for module accents instead of hard-coding new brand colours.
-
-## Shared UI Patterns
-
-| Pattern | Current examples | Guidance |
-| --- | --- | --- |
-| App shell | Sidebar, topbar, content frame | Keep navigation stable and avoid page logic in the shell. |
-| Cards/panels | Dashboard cards, studio panels, Players dark panels | Use for grouped data and actions, not nested decoration. |
-| Modals/drawers | Player editor, profile modal, note modal, create session modal | Use for focused actions and detail. |
-| Workspaces | Session Planner workspace, Tactical Board workstation | Use for design-heavy coaching work. |
-| Preview panels | Onboarding live preview, dashboard tactical preview | Use to make data feel real and visual. |
-| Disabled future actions | Dashboard and sidebar future items | Keep disabled states clear and intentional. |
-
-## Module UI Notes
-
-### Dashboard
-
-Dashboard currently mixes real data with preview/future areas. Keep real coaching priorities above decorative content. Future improvements should make the next action, next session, player attention, and next match more actionable.
-
-### Players
-
-Players OS uses a darker, immersive workspace. Maintain the Player Centre / Squad Management / Development Plans structure. Avoid turning Players back into a flat table or giant form.
-
-### Session Planner
-
-Session Planner should remain a studio. Keep the dashboard, create route, workspace tabs, timeline, activity editor, quality checklist, and diagram tools close together.
-
-### Tactical Board
-
-Tactical Board should prioritize the pitch and object controls. Keep saved board list, pitch, and inspector visible at the same time on desktop.
-
-### Onboarding and Team Setup
-
-These modules use team identity and live preview to make setup feel personal. Preserve image upload limits and readable step layouts.
-
-## Accessibility and Usability Guidance
-
-- Keep button labels clear.
-- Ensure disabled actions look disabled and explain future intent where possible.
-- Maintain readable contrast when club colours change.
-- Keep scroll containers predictable.
-- Avoid horizontal overflow in dense modules.
-- Preserve keyboard-safe modal close controls where present.
-
-## Improvement Opportunities
-
-- Add a small visual regression checklist for major modules.
-- Standardize button variants across CSS layers.
-- Consolidate repeated panel/card styles after the feature set stabilizes.
-- Add responsive review passes for Players, Session Planner, and Tactical Board.
-- Add an export/print style once report/PDF work begins.
+- Does the page still feel like Coach Command Centre?
+- Does it inherit club colour correctly?
+- Is the main coaching task obvious?
+- Are future actions clearly disabled or marked preview?
+- Are dense lists scrollable inside panels?
+- Are modals/drawers focused and easy to close?
+- Does the layout work on desktop and smaller screens?
+- Did the task avoid unrelated module redesign?
