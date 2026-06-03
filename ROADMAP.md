@@ -1,20 +1,22 @@
 # Roadmap: Coach Command Centre / 教练罗盘
 
-This roadmap keeps future work focused. It should be read together with `PROJECT_CONTEXT.md` and `CODEX_RULES.md` before development.
+This roadmap keeps future work focused on the coach-first product loop. It should be read with `PROJECT_CONTEXT.md`, `CODEX_RULES.md`, `DESIGN_SYSTEM.md`, and the `docs/` folder before development.
 
 ## Current Stage
 
-Current stage: frontend localStorage MVP.
+Current stage: Frontend localStorage MVP / Coach HQ product refinement.
 
-The product already proves the basic coaching loop:
+The product already proves the local coaching loop:
 
-- set up team identity
-- manage players
+- create team identity
+- import/add players
+- manage player profiles, notes, lineup, tactics, and assignments
 - plan sessions
-- create tactical diagrams
-- embed diagrams in session activities
-- protect drafts
-- save data locally
+- autosave session drafts
+- create activity diagrams
+- copy diagrams to Tactical Board
+- create and save tactical boards
+- apply club theme colours
 - deploy to Vercel
 
 Current technical limits:
@@ -27,266 +29,106 @@ Current technical limits:
 - no payments
 - no chat
 
-The current stage should focus on making the local product loop feel excellent before adding infrastructure.
+## Short-Term Roadmap
 
-## Current Most Important Priorities
+Short-term work should stay frontend-only unless the user explicitly changes the project stage.
 
-1. Protect existing localStorage data and draft protection.
-2. Improve the coach-first product loop.
-3. Make Players feel like a Player Development Hub.
-4. Make Session Planner feel like a Session Design Studio.
-5. Strengthen the link between players, sessions, tactical diagrams, and future match reflection.
-6. Keep UI premium, focused, and practical.
-7. Avoid adding backend, login, AI, or payment too early.
+| Priority | Focus | Goal |
+| --- | --- | --- |
+| High | Dashboard -> Coach Mission Control | Make Home show the coach's next action, weekly priorities, squad state, session state, and tactical/match context. |
+| High | Players -> Player Operating System polish | Improve visual unity, club theme integration, player review states, profile depth, and Development Plans path. |
+| High | Session Planner -> Session Design Studio | Refine dashboard, create flow, session workspace, activity editor, reflection, and output readiness. |
+| High | Tactical Board -> Presentation-style workstation | Improve toolbar, saved board library, object controls, presets, and presentation feel. |
+| Medium | Onboarding polish | Keep the take-charge flow clear, compact, and trustworthy for first-time coaches. |
+| Medium | Data export/import backup | Add local data backup and restore before cloud sync exists. |
+| Medium | PDF export | Produce coach-facing session outputs with diagrams when ready. |
 
-## Short-Term Roadmap: Better Local MVP
+## Medium-Term Roadmap
 
-Short-term work should stay frontend-only unless explicitly changed by the user.
+| Focus | Goal |
+| --- | --- |
+| Match Centre foundation | Fixtures, opponent, venue, match plan, lineup, reflection, and next training focus. |
+| Training feedback | Connect delivered sessions to player development and future planning. |
+| Match feedback | Record player/team match feedback and turn it into next-session priorities. |
+| Session review | Add reflection and follow-up workflow after sessions. |
+| Player development trends | Turn notes, ratings, and feedback into visible development history. |
+| Reports | Coach-facing summaries for players, sessions, boards, and match reflection. |
+| Better responsive layout | Review major modules across desktop, tablet, and mobile. |
 
-Priority candidates:
+## Long-Term Roadmap
 
-1. Players Squad Hub refinements
-   - stronger squad overview
-   - Player Profile modal/page improvements
-   - avatar upload polish
-   - notes timeline improvements
-   - development focus overview
-   - players needing review
+Long-term work starts only after the local product loop is strong.
 
-2. Session Planner Dashboard
-   - better session library
-   - drafts area
-   - this week / next session
-   - focus areas
-   - session quality checklist
-   - recently delivered sessions
-   - reflection entry points
+| Focus | Goal |
+| --- | --- |
+| Supabase/Firebase backend | Add persistent cloud data when local data shapes are stable. |
+| Authentication | Add coach accounts and workspace ownership. |
+| Cloud database | Store teams, players, sessions, boards, match records, and reports. |
+| Image storage | Move crest, coach photo, and player avatars from data URLs to cloud storage. |
+| AI assistant | Add secure server-side AI suggestions based on real coaching context. |
+| Paid plans | Consider only after product value and cloud cost are clear. |
+| Multi-team/workspace support | Let a coach manage multiple teams or seasons. |
 
-3. Create Session Wizard
-   - guided create flow
-   - start from scratch
-   - build from squad needs
-   - duplicate previous session
-   - session basics
-   - focus and structure
-   - activities
-   - review and create
-
-4. Session Workspace redesign
-   - left session timeline
-   - centre activity editor
-   - right diagram/coaching tools
-   - edit one activity at a time
-   - reduce endless scrolling
-
-5. PDF / Preview output
-   - practical coach-facing training plan output
-   - readable activity structure
-   - embedded diagrams
-   - clear coaching points
-
-6. Match Centre foundation
-   - fixtures/opponent basics
-   - lineup and formation foundation
-   - team performance notes
-   - match reflection
-   - next training focus
-
-7. Feedback loops
-   - training feedback
-   - match feedback
-   - player development notes
-   - reflection-to-next-session workflow
-
-8. Data backup
-   - export local data
-   - import local data
-   - simple recovery path before cloud sync exists
-
-## Medium-Term Roadmap: Cloud Version
-
-Only start this after the local MVP has a stronger product loop.
-
-Possible infrastructure:
-
-- Supabase or Firebase
-- authentication
-- database
-- storage
-- multi-device sync
-- cloud image storage
-- safer backup and restore
-
-Medium-term product questions to answer first:
-
-- Which localStorage data shapes are stable enough to become database tables?
-- What should a user account own: one team, multiple teams, or a coach workspace?
-- How should images move from base64/local storage to cloud storage?
-- What migration path protects existing local users?
-
-Do not rush into cloud infrastructure before the local UX is worth syncing.
-
-## Long-Term Roadmap: AI Version
-
-AI is a major future direction, but it should come after backend/API infrastructure exists.
-
-AI must not be added by putting an API key in the frontend.
-
-Future AI features:
-
-1. AI Session Draft
-   - use squad needs, player focus, coach goals, match problems, and team style
-   - produce editable session skeletons
-
-2. AI Session Improvement
-   - improve an existing session
-   - make it more game realistic
-   - adapt it for age group, player number, equipment, or ability level
-
-3. AI Player Development Summary
-   - summarise recent notes and feedback
-   - identify trends and next focus areas
-
-4. AI Match Review to Training Focus
-   - turn match reflection into training themes
-   - suggest follow-up sessions
-
-5. AI Coach Suggestions
-   - coaching questions
-   - progression/regression ideas
-   - player feedback language
-   - session quality checks
-
-AI should use real product context:
-
-- team identity
-- player data
-- coach notes
-- development focus
-- sessions
-- tactical diagrams where possible
-- match feedback
-- coach goals
-- team style
-- previous reflections
-
-## Future Feature List
-
-Possible future features, grouped by product area.
-
-### Coach HQ
-
-- weekly coaching dashboard
-- team goals and coach goals
-- next action suggestions
-- recent player development
-- recent tactical boards
-- upcoming session/match overview
-
-### Player Development Hub
-
-- richer Player Profile
-- notes timeline
-- training feedback
-- match feedback
-- player stats
-- milestones
-- development trends
-- coach suggestions
-- future AI summaries
-
-### Session Design Studio
-
-- session templates
-- squad needs builder
-- match-to-session link
-- player groups
-- coaching questions bank
-- progression/regression suggestions
-- session quality checklist
-- reflection flow
-- PDF export
-- future AI session draft
-
-### Tactical Board
-
-- presentation mode
-- more pitch layouts
-- improved drawing controls
-- resize/rotate/drag
-- better mini goals
-- copy session diagram to board
-- export image/PDF
-
-### Match Centre
-
-- fixtures
-- opponent
-- venue
-- formation
-- lineup
-- bench
-- minutes
-- goals/assists
-- ratings
-- player feedback
-- match reflection
-- next training focus
-- create follow-up session from match problems
-
-### Reports
-
-- coach-facing development reports
-- player progress summaries
-- session history reports
-- match reflection summaries
-- future PDF output
-
-## Features To Avoid For Now
+## Do Not Build Yet
 
 Do not build these in the current local MVP stage:
 
-- login
-- cloud database
-- backend
-- API calls
-- AI integration
-- OpenAI/Claude/Gemini keys
-- payment/subscription
-- team chat
-- parent accounts
-- player accounts
-- advanced permissions
-- medical sensitive records
-- full SaaS architecture
+- chat
+- parent/player accounts
+- payments
+- full club admin system
+- AI API now
+- database now
+- backend now
+- complex permissions
+- medical sensitive record system
 
-## Backend / Database Route
+## Module Direction
 
-When the product is ready for backend work, the likely route is:
+### Dashboard / Coach Mission Control
 
-1. Document current localStorage keys and data shapes.
-2. Decide the database model.
+Next goal: make Dashboard the coach's daily command screen. It should make the next session, next match, player priorities, tactical board activity, and team goals immediately clear.
+
+### Players / Player Operating System
+
+Next goal: polish the current Players OS and deepen development tracking. Keep Player Centre, Squad Management, Lineup, Tactics, Assignments, and profile modals.
+
+### Session Planner / Session Design Studio
+
+Next goal: strengthen the studio flow. Improve create session wizard, workspace layout, activity design, session reflection, and future PDF output.
+
+### Tactical Board / Presentation Workstation
+
+Next goal: make the board faster and more presentation-ready. Improve object workflows, saved boards, pitch controls, and export path.
+
+### Match Centre
+
+Next goal: create foundation only when requested. Match Centre should connect match problems to future training, not become heavy fixture admin.
+
+## Backend Route
+
+When ready:
+
+1. Freeze and document stable localStorage data shapes.
+2. Plan migration from localStorage to cloud records.
 3. Add authentication.
 4. Add database persistence.
 5. Add image storage.
-6. Add export/import migration support.
+6. Add export/import recovery.
 7. Add cloud sync carefully.
-8. Only then consider AI API routes.
-
-Protect local users during migration. Never assume data can be discarded.
+8. Add server-side AI routes later.
 
 ## AI Route
 
-The likely AI route is:
-
-1. Backend/API route foundation.
-2. Secure AI provider key on the server side.
-3. Usage limits and basic safety controls.
-4. Read-only AI suggestions first.
-5. Editable AI drafts, never auto-overwriting user data.
-6. Session generation.
-7. Player summaries.
-8. Match review to training focus.
-9. Paid plans later if needed.
-
 AI should assist the coach, not replace the coach.
+
+Safe route:
+
+1. Backend/API foundation first.
+2. Provider key stored server-side only.
+3. Read-only suggestions first.
+4. Editable drafts, never automatic overwrites.
+5. Session suggestions.
+6. Player development summaries.
+7. Match review to training focus.
+8. Paid plans later if needed.
