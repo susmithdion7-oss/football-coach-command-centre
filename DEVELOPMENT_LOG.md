@@ -4,6 +4,43 @@ This file records important product and engineering work for Coach Command Centr
 
 Future Codex sessions should read this log before development, then add a short entry after meaningful changes.
 
+## 2026-06-07 - Dashboard Operating Loop
+
+Date: 2026-06-07
+
+Task: Move the Dashboard further toward Coach Mission Control with a connected operating loop.
+
+Scope: Dashboard information architecture and styling only. No backend, database, login, AI/API, payment, chat, localStorage key changes, Players, Session Planner, Tactical Board, Onboarding, or Team Setup changes.
+
+Files changed:
+
+- `src/pages/Dashboard.jsx`
+- `src/dashboard.css`
+- `DEVELOPMENT_LOG.md`
+
+What changed:
+
+- Added a Coach Operating Loop that connects squad signals, session readiness, tactical support, and season direction into one visible workflow.
+- Replaced the separate status-card feel with a connected system signal rail.
+- Added action buttons in each operating-loop step so the Dashboard routes coaches to the next relevant workspace.
+- Preserved the existing Mission Queue and Today focus behavior while making the module relationships clearer.
+
+Testing:
+
+- Confirmed work started from latest remote `main`.
+- Ran `npm.cmd install --package-lock=false` for local dependency setup without adding a package lock.
+- Ran `npm.cmd run build`; Vite production build passed.
+- Confirmed no localStorage utility files or storage keys were changed.
+
+Known issues:
+
+- Match Centre remains a disabled future action.
+- This PR does not redesign Players, Session Planner, Tactical Board, or app shell navigation.
+
+Next step:
+
+- Review the Dashboard preview, then continue with Players as a Player Operating System.
+
 ## 2026-06-07 - Dashboard Mission Queue
 
 Date: 2026-06-07

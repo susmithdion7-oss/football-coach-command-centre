@@ -342,6 +342,68 @@ function getPrimaryCoachTask(coachTasks = []) {
   return coachTasks.find((task) => !task.disabled) || coachTasks[0]
 }
 
+function getCoachOperatingLoop({
+  attentionPlayers,
+  latestBoard,
+  nextSession,
+  playerCount,
+  readinessPercentage,
+  seasonObjectives,
+  tacticalBoardCount,
+}) {
+  const playersNeedAttention = attentionPlayers.length > 0
+  const hasSession = Boolean(nextSession)
+  const hasBoard = Boolean(latestBoard)
+  const hasSeasonDirection = seasonObjectives.length > 0
+
+  return [
+    {
+      id: 'squad-signal',
+      action: playerCount > 0 ? 'Review Players' : 'Build Squad',
+      detail: playersNeedAttention
+        ? `${attentionPlayers.length} player${attentionPlayers.length === 1 ? '' : 's'} need coaching attention`
+        : `${playerCount} player${playerCount === 1 ? '' : 's'} ready for planning context`,
+      label: 'Squad Signal',
+      state: playerCount > 0 && !playersNeedAttention ? 'ready' : 'needs-work',
+      target: 'players',
+      value: playerCount > 0 ? `${playerCount} players` : 'No squad yet',
+    },
+    {
+      id: 'session-design',
+      action: hasSession ? 'Continue Planning' : 'Create Session',
+      detail: hasSession
+        ? `${readinessPercentage}% ready - check objective, activities, diagram, points, and questions`
+        : 'Create the next training block from squad needs',
+      label: 'Session Design',
+      state: hasSession && readinessPercentage >= 80 ? 'ready' : 'needs-work',
+      target: 'sessions',
+      value: hasSession ? getDisplayStatus(nextSession.status) : 'No next session',
+    },
+    {
+      id: 'tactical-support',
+      action: hasBoard ? 'Open Board' : 'Create Board',
+      detail: hasBoard
+        ? `${latestBoard.title || 'Untitled board'} is available for session or team-talk support`
+        : 'Build a tactical visual before coaching concepts get lost in notes',
+      label: 'Tactical Support',
+      state: hasBoard ? 'ready' : 'needs-work',
+      target: 'tactics',
+      value: `${tacticalBoardCount} board${tacticalBoardCount === 1 ? '' : 's'}`,
+    },
+    {
+      id: 'season-direction',
+      action: 'Club Setup',
+      detail: hasSeasonDirection
+        ? seasonObjectives.slice(0, 2).map((objective) => `${objective.label}: ${objective.value}`).join(' | ')
+        : 'Set team goals, coach goals, playing style, or training priorities',
+      label: 'Season Direction',
+      state: hasSeasonDirection ? 'ready' : 'needs-work',
+      target: 'clubSetup',
+      value: hasSeasonDirection ? `${seasonObjectives.length} signals` : 'Direction missing',
+    },
+  ]
+}
+
 function isSessionThisWeek(session) {
   const sessionDate = parseLocalDate(session?.date)
 
@@ -468,6 +530,15 @@ function Dashboard({
     ...defaultMatch,
     day: teamIdentity?.matchDay || defaultMatch.day,
   }
+  const operatingLoop = getCoachOperatingLoop({
+    attentionPlayers,
+    latestBoard,
+    nextSession,
+    playerCount,
+    readinessPercentage,
+    seasonObjectives,
+    tacticalBoardCount,
+  })
 
   return (
     <section className="coach-mission-control dashboard-workspace">
@@ -489,36 +560,21 @@ function Dashboard({
         onNavigate={onNavigate}
       />
 
-      <section className="mission-status-grid" aria-label="Coach Mission Control status">
-        <StatusCard
-          detail={`${attentionPlayers.length} need attention`}
-          icon="SQ"
-          label="Squad"
-          note={attentionPlayers.length > 0 ? 'Review profiles and support needs' : 'Profiles look healthy'}
-          value={`${playerCount} players`}
-        />
-        <StatusCard
-          detail={`${draftUpcomingSessions.length} drafts`}
-          icon="SP"
-          label="Sessions"
-          note={`${sessionCount} saved total`}
-          value={`${upcomingSessions.length} planned`}
-        />
-        <StatusCard
-          detail="Lineup not set"
-          icon="MP"
-          label="Match Prep"
-          note={nextMatch.status}
-          value={nextMatch.day}
-        />
-        <StatusCard
-          detail={activeCoachTasks.slice(0, 2).map((task) => task.label).join(', ') || 'No open tasks'}
-          icon="CT"
-          label="Coach Tasks"
-          note={coachTasks.some((task) => task.disabled) ? 'Match prep is placeholder' : 'Ready for today'}
-          value={`${activeCoachTasks.length} active`}
-        />
-      </section>
+      <CoachOperatingLoop
+        loopSteps={operatingLoop}
+        onNavigate={onNavigate}
+      />
+
+      <SystemSignalRail
+        activeCoachTasks={activeCoachTasks}
+        attentionPlayers={attentionPlayers}
+        coachTasks={coachTasks}
+        draftUpcomingSessions={draftUpcomingSessions}
+        nextMatch={nextMatch}
+        playerCount={playerCount}
+        sessionCount={sessionCount}
+        upcomingSessions={upcomingSessions}
+      />
 
       <CoachTasksPanel
         coachTasks={coachTasks}
@@ -553,6 +609,95 @@ function Dashboard({
           onNavigate={onNavigate}
         />
       </section>
+    </section>
+  )
+}
+
+function CoachOperatingLoop({ loopSteps, onNavigate }) {
+  return (
+    <section className="coach-operating-loop" aria-labelledby="coach-loop-title">
+      <div className="coach-loop-heading">
+        <div>
+          <p className="mission-kicker">Operating Loop</p>
+          <h3 id="coach-loop-title">How today turns into the next coaching action</h3>
+        </div>
+        <span>Squad context feeds session design, tactical support, and season direction.</span>
+      </div>
+
+      <div className="coach-loop-track">
+        {loopSteps.map((step, index) => (
+          <article className={`coach-loop-step ${step.state}`} key={step.id}>
+            <div className="coach-loop-node">
+              <span>{String(index + 1).padStart(2, '0')}</span>
+            </div>
+            <div className="coach-loop-copy">
+              <span>{step.label}</span>
+              <strong>{step.value}</strong>
+              <p>{step.detail}</p>
+            </div>
+            <button onClick={() => onNavigate(step.target)} type="button">
+              {step.action}
+            </button>
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function SystemSignalRail({
+  activeCoachTasks,
+  attentionPlayers,
+  coachTasks,
+  draftUpcomingSessions,
+  nextMatch,
+  playerCount,
+  sessionCount,
+  upcomingSessions,
+}) {
+  const signals = [
+    {
+      detail: `${attentionPlayers.length} need attention`,
+      icon: 'SQ',
+      label: 'Squad',
+      note: attentionPlayers.length > 0 ? 'Review profiles and support needs' : 'Profiles look healthy',
+      value: `${playerCount} players`,
+    },
+    {
+      detail: `${draftUpcomingSessions.length} drafts`,
+      icon: 'SP',
+      label: 'Sessions',
+      note: `${sessionCount} saved total`,
+      value: `${upcomingSessions.length} planned`,
+    },
+    {
+      detail: 'Lineup not set',
+      icon: 'MP',
+      label: 'Match Prep',
+      note: nextMatch.status,
+      value: nextMatch.day,
+    },
+    {
+      detail: activeCoachTasks.slice(0, 2).map((task) => task.label).join(', ') || 'No open tasks',
+      icon: 'CT',
+      label: 'Coach Tasks',
+      note: coachTasks.some((task) => task.disabled) ? 'Match prep is placeholder' : 'Ready for today',
+      value: `${activeCoachTasks.length} active`,
+    },
+  ]
+
+  return (
+    <section className="mission-status-grid" aria-label="Coach Mission Control status">
+      {signals.map((signal) => (
+        <StatusCard
+          detail={signal.detail}
+          icon={signal.icon}
+          key={signal.label}
+          label={signal.label}
+          note={signal.note}
+          value={signal.value}
+        />
+      ))}
     </section>
   )
 }
@@ -723,7 +868,7 @@ function CoachTasksPanel({ coachTasks, onNavigate }) {
 
 function StatusCard({ detail, icon, label, note, value }) {
   return (
-    <article className="mission-status-card">
+    <article className="mission-signal-cell">
       <div className="status-card-topline">
         <span>{icon}</span>
         <strong>{label}</strong>
