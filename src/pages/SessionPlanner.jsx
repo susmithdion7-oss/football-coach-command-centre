@@ -329,6 +329,103 @@ function getPlayerFocusAreas(players) {
     .slice(0, 3)
 }
 
+function getFocusSuggestion(focusLabel = '') {
+  const normalisedFocus = focusLabel.toLowerCase()
+  const suggestionRules = [
+    {
+      keywords: ['scan', 'half-turn', 'decision'],
+      mainGameMoment: 'In possession',
+      primaryTopic: 'Passing and receiving',
+      tags: ['Scanning before receiving', 'Receiving on the half-turn', 'Decision-making'],
+    },
+    {
+      keywords: ['first touch', 'receiving', 'pass'],
+      mainGameMoment: 'In possession',
+      primaryTopic: 'Passing and receiving',
+      tags: ['Passing and receiving', 'Support angles'],
+    },
+    {
+      keywords: ['finish', 'shoot'],
+      mainGameMoment: 'In possession',
+      primaryTopic: 'Finishing',
+      tags: ['Finishing under pressure'],
+    },
+    {
+      keywords: ['defend', 'shape', 'compact', 'cover'],
+      mainGameMoment: 'Out of possession',
+      primaryTopic: 'Defending',
+      tags: ['Defensive compactness', 'Cover and balance'],
+    },
+    {
+      keywords: ['press'],
+      mainGameMoment: 'Out of possession',
+      primaryTopic: 'Pressing',
+      tags: ['Pressing triggers'],
+    },
+    {
+      keywords: ['confidence', 'communication', 'teamwork'],
+      mainGameMoment: 'Psychological / social',
+      primaryTopic: 'Match preparation',
+      tags: ['Communication', 'Confidence', 'Teamwork'],
+    },
+  ]
+  const matchedRule = suggestionRules.find((rule) => rule.keywords.some((keyword) => normalisedFocus.includes(keyword)))
+  const exactTopic = primaryTopics.includes(focusLabel) ? focusLabel : null
+  const exactTag = topicTags.includes(focusLabel) ? focusLabel : null
+
+  if (!focusLabel) {
+    return {
+      mainGameMoment: emptySession.mainGameMoment,
+      primaryTopic: emptySession.primaryTopic,
+      topicTags: [],
+    }
+  }
+
+  return {
+    mainGameMoment: matchedRule?.mainGameMoment || emptySession.mainGameMoment,
+    primaryTopic: exactTopic || matchedRule?.primaryTopic || emptySession.primaryTopic,
+    topicTags: [...new Set([exactTag, ...(matchedRule?.tags || [])].filter((tag) => tag && topicTags.includes(tag)))],
+  }
+}
+
+function getSquadNeedStats(players) {
+  const playerFocusAreas = getPlayerFocusAreas(players)
+  const topFocus = playerFocusAreas[0]
+  const missingFocusCount = players.filter((player) => !player.developmentFocus).length
+  const missingPositionCount = players.filter((player) => !player.mainPosition).length
+  const suggestion = getFocusSuggestion(topFocus?.label)
+
+  return {
+    missingFocusCount,
+    missingPositionCount,
+    playerFocusAreas,
+    suggestion,
+    topFocus,
+  }
+}
+
+function getSquadNeedActivities(focusLabel) {
+  if (!focusLabel) {
+    return activityTemplates.map(createEmptyActivity)
+  }
+
+  const activityNames = [
+    `Activate ${focusLabel}`,
+    `${focusLabel} technical practice`,
+    `${focusLabel} opposed practice`,
+    `${focusLabel} conditioned game`,
+    `${focusLabel} reflection`,
+  ]
+
+  return activityTemplates.map((templateName, index) => ({
+    ...createEmptyActivity(templateName),
+    name: activityNames[index] || templateName,
+    coachNotes: `Built from squad development focus: ${focusLabel}. Adjust setup, rules and detail before delivery.`,
+    coachingPoints: index === 0 || index === 4 ? '' : `Observe how players apply ${focusLabel} under realistic pressure.`,
+    playerQuestions: index === 0 || index === 4 ? `What will help us improve ${focusLabel} today?` : `What tells you this is the right moment to use ${focusLabel}?`,
+  }))
+}
+
 function getSessionQualityItems(session) {
   return [
     { label: 'Clear objective', complete: Boolean(session.primaryTopic && session.mainGameMoment) },
@@ -341,14 +438,18 @@ function getSessionQualityItems(session) {
 }
 
 function getSessionStarter(route, players) {
-  const playerFocusAreas = getPlayerFocusAreas(players)
-  const topPlayerFocus = playerFocusAreas[0]?.label
+  const squadNeedStats = getSquadNeedStats(players)
+  const topPlayerFocus = squadNeedStats.topFocus?.label
 
   if (route === 'squad' && topPlayerFocus) {
     return getSessionForForm({
       ...emptySession,
-      primaryTopic: primaryTopics.includes(topPlayerFocus) ? topPlayerFocus : emptySession.primaryTopic,
-      topicTags: topicTags.includes(topPlayerFocus) ? [topPlayerFocus] : [],
+      activities: getSquadNeedActivities(topPlayerFocus),
+      mainGameMoment: squadNeedStats.suggestion.mainGameMoment,
+      numberOfPlayers: players.length ? String(players.length) : '',
+      primaryTopic: squadNeedStats.suggestion.primaryTopic,
+      sessionTitle: `${topPlayerFocus} session`,
+      topicTags: squadNeedStats.suggestion.topicTags,
     })
   }
 
@@ -406,6 +507,13 @@ function SessionPlanner({
   const nextSession = upcomingSessions[0]
   const qualityItems = getSessionQualityItems(formData)
   const completedQualityItems = qualityItems.filter((item) => item.complete).length
+
+  function openCreateSessionModal(route = 'squad') {
+    const requestedRoute = typeof route === 'string' ? route : 'squad'
+    const safeRoute = requestedRoute === 'duplicate' && !selectedSession ? 'scratch' : requestedRoute
+    setSelectedCreationRoute(safeRoute)
+    setIsCreateModalOpen(true)
+  }
 
   useEffect(() => {
     if (!hasUnsavedChanges) {
@@ -644,7 +752,7 @@ function SessionPlanner({
           draftSessions={draftSessions}
           focusAreas={focusAreas}
           nextSession={nextSession}
-          onCreateSession={() => setIsCreateModalOpen(true)}
+          onCreateSession={openCreateSessionModal}
           onOpenSession={(sessionId) => selectSession(sessionId, true)}
           playerFocusAreas={playerFocusAreas}
           players={players}
@@ -662,7 +770,7 @@ function SessionPlanner({
             formData={formData}
             hasUnsavedChanges={hasUnsavedChanges}
             onBack={() => setViewMode('dashboard')}
-            onCreateSession={() => setIsCreateModalOpen(true)}
+            onCreateSession={openCreateSessionModal}
             onDelete={handleDelete}
             onDiscardDraft={discardDraft}
             onDuplicate={() => handleDuplicate(false)}
@@ -725,6 +833,10 @@ function SessionPlanner({
 
             <aside className="session-coach-panel">
               <SessionQualityPanel qualityItems={qualityItems} />
+              <SessionSquadNeedsPanel
+                playerFocusAreas={playerFocusAreas}
+                players={players}
+              />
               <AiAssistantShell
                 assistantDraft={assistantDraft}
                 formData={formData}
@@ -788,7 +900,7 @@ function SessionStudioDashboard({
           <span>{teamIdentity?.seasonName || 'Current season'}</span>
           <strong>{teamIdentity?.teamName || 'Your team'}</strong>
           <p>{players.length} players in your current coaching context.</p>
-          <button className="primary-button" type="button" onClick={onCreateSession}>Create Session</button>
+          <button className="primary-button" type="button" onClick={() => onCreateSession()}>Create Session</button>
         </div>
       </section>
 
@@ -828,7 +940,7 @@ function SessionStudioDashboard({
               title="No upcoming session yet"
               copy="Create the next session from squad needs or start from a blank workspace."
               action="Create Session"
-              onAction={onCreateSession}
+              onAction={() => onCreateSession()}
             />
           )}
         </section>
@@ -837,7 +949,7 @@ function SessionStudioDashboard({
           <PanelHeading title="Quick Start" />
           <div className="quick-start-grid">
             {creationRoutes.map((route) => (
-              <button key={route.id} type="button" onClick={onCreateSession}>
+              <button key={route.id} type="button" onClick={() => onCreateSession(route.id)}>
                 <span>{route.icon}</span>
                 <strong>{route.title}</strong>
                 <small>{route.description}</small>
@@ -890,7 +1002,7 @@ function SessionStudioDashboard({
             <span>Future AI layer</span>
             <strong>Ask for a session draft from your real team context.</strong>
             <p>This shell is ready for a future backend. No API call or AI key is used now.</p>
-            <button className="secondary-button" type="button" onClick={onCreateSession}>Open planning workflow</button>
+            <button className="secondary-button" type="button" onClick={() => onCreateSession()}>Open planning workflow</button>
           </div>
         </section>
       </div>
@@ -924,7 +1036,7 @@ function WorkspaceHeader({
           <span className={hasUnsavedChanges ? 'save-state-pill unsaved' : 'save-state-pill'}>{hasUnsavedChanges ? 'Unsaved' : 'Saved'}</span>
           <button className="secondary-button" type="button" onClick={onDuplicate} disabled={!selectedSession}>Duplicate</button>
           <button className="secondary-button" type="button" onClick={onDiscardDraft}>Discard Draft</button>
-          <button className="secondary-button" type="button" onClick={onCreateSession}>New</button>
+          <button className="secondary-button" type="button" onClick={() => onCreateSession()}>New</button>
           <button className="danger-button" type="button" onClick={onDelete} disabled={!selectedSession}>Delete</button>
           <button className="primary-button" type="submit">Save Session</button>
         </div>
@@ -1107,6 +1219,43 @@ function SessionQualityPanel({ qualityItems }) {
   )
 }
 
+function SessionSquadNeedsPanel({ playerFocusAreas, players }) {
+  const squadNeedStats = getSquadNeedStats(players)
+  const topFocus = squadNeedStats.topFocus
+
+  return (
+    <section className="coach-side-panel squad-needs-side-panel">
+      <div className="side-panel-heading">
+        <p className="section-kicker">Squad Needs</p>
+        <h4>{topFocus ? topFocus.label : 'No player focus yet'}</h4>
+      </div>
+      <div className="squad-need-signal-list">
+        <div>
+          <span>Top focus</span>
+          <strong>{topFocus ? `${topFocus.count} player${topFocus.count === 1 ? '' : 's'}` : 'Missing'}</strong>
+        </div>
+        <div>
+          <span>Session topic</span>
+          <strong>{squadNeedStats.suggestion.primaryTopic}</strong>
+        </div>
+        <div>
+          <span>Missing focus</span>
+          <strong>{squadNeedStats.missingFocusCount}</strong>
+        </div>
+        <div>
+          <span>Missing position</span>
+          <strong>{squadNeedStats.missingPositionCount}</strong>
+        </div>
+      </div>
+      <div className="context-chip-stack squad-needs-chip-stack">
+        {(playerFocusAreas.length > 0 ? playerFocusAreas : [{ label: 'Set player development focus', count: 0 }]).map((focus) => (
+          <span key={focus.label}>{focus.label}{focus.count ? ` (${focus.count})` : ''}</span>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 function AiAssistantShell({ assistantDraft, formData, onAssistantDraftChange, playerFocusAreas, teamIdentity }) {
   const contextItems = [
     teamIdentity?.teamName || 'Your team',
@@ -1153,6 +1302,15 @@ function CreateSessionModal({
   selectedRoute,
   sessions,
 }) {
+  const squadNeedStats = getSquadNeedStats(players)
+  const routePreview = getCreationRoutePreview({
+    canDuplicate,
+    players,
+    selectedRoute,
+    sessions,
+    squadNeedStats,
+  })
+
   return (
     <div className="create-session-overlay" role="presentation">
       <section className="create-session-modal" role="dialog" aria-modal="true" aria-labelledby="create-session-title">
@@ -1195,19 +1353,27 @@ function CreateSessionModal({
           </div>
 
           <aside className="create-context-panel">
-            <strong>Squad context</strong>
+            <strong>{routePreview.title}</strong>
             <div className="context-metric-row">
               <span>{players.length} Players</span>
               <span>{sessions.length} Sessions</span>
             </div>
             <div className="context-chip-stack">
               {(playerFocusAreas.length > 0 ? playerFocusAreas : [{ label: 'Add player focus areas', count: 0 }]).map((focus) => (
-                <span key={focus.label}>{focus.label}</span>
+                <span key={focus.label}>{focus.label}{focus.count ? ` (${focus.count})` : ''}</span>
+              ))}
+            </div>
+            <div className="route-preview-list">
+              {routePreview.items.map((item) => (
+                <div key={item.label}>
+                  <span>{item.label}</span>
+                  <strong>{item.value}</strong>
+                </div>
               ))}
             </div>
             <div className="session-preview-card">
               <strong>What happens next?</strong>
-              <p>The workspace opens with basics, focus, activity editor, diagram tools, quality review and an AI assistant shell.</p>
+              <p>{routePreview.nextStep}</p>
             </div>
           </aside>
         </div>
@@ -1219,6 +1385,45 @@ function CreateSessionModal({
       </section>
     </div>
   )
+}
+
+function getCreationRoutePreview({ canDuplicate, players, selectedRoute, sessions, squadNeedStats }) {
+  if (selectedRoute === 'scratch') {
+    return {
+      items: [
+        { label: 'Starting point', value: 'Blank workspace' },
+        { label: 'Players', value: players.length || '--' },
+        { label: 'Saved sessions', value: sessions.length },
+      ],
+      nextStep: 'The workspace opens clean so you can choose the objective, activities, diagram and review flow by hand.',
+      title: 'Scratch route',
+    }
+  }
+
+  if (selectedRoute === 'duplicate') {
+    return {
+      items: [
+        { label: 'Starting point', value: canDuplicate ? 'Current session copy' : 'Open a session first' },
+        { label: 'Saved sessions', value: sessions.length },
+        { label: 'Status', value: canDuplicate ? 'Ready' : 'Unavailable' },
+      ],
+      nextStep: canDuplicate
+        ? 'The selected session will be copied as a new draft so you can adapt it for the next training block.'
+        : 'Open an existing session before using duplicate.',
+      title: 'Duplicate route',
+    }
+  }
+
+  return {
+    items: [
+      { label: 'Top squad focus', value: squadNeedStats.topFocus?.label || 'No focus set yet' },
+      { label: 'Suggested topic', value: squadNeedStats.suggestion.primaryTopic },
+      { label: 'Missing focus', value: squadNeedStats.missingFocusCount },
+      { label: 'Missing position', value: squadNeedStats.missingPositionCount },
+    ],
+    nextStep: 'The workspace opens with player count, training focus and activity names prefilled from existing player development focus.',
+    title: 'Squad-needs route',
+  }
 }
 
 function FormSection({ children, kicker, title }) {
