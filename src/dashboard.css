@@ -46,6 +46,7 @@
 
 .mission-header,
 .today-focus-panel,
+.coach-task-command,
 .mission-status-card,
 .mission-panel {
   border: 1px solid var(--club-border);
@@ -123,6 +124,7 @@
 .mission-action,
 .mission-icon-action,
 .focus-button,
+.coach-task-row button,
 .mission-panel-header button,
 .mission-empty-state button {
   min-height: 36px;
@@ -142,6 +144,7 @@
 
 .mission-action.primary,
 .focus-button,
+.coach-task-row button,
 .mission-empty-state button {
   background: var(--club-primary);
   color: var(--club-on-primary);
@@ -167,6 +170,7 @@
 .mission-action:hover,
 .mission-icon-action:hover,
 .focus-button:hover,
+.coach-task-row button:hover,
 .mission-panel-header button:hover,
 .mission-empty-state button:hover {
   transform: translateY(-1px);
@@ -174,6 +178,7 @@
 
 .mission-action.primary:hover,
 .focus-button:hover,
+.coach-task-row button:hover,
 .mission-empty-state button:hover {
   background: var(--club-primary-dark);
 }
@@ -337,6 +342,7 @@
 
 .focus-button.disabled,
 .focus-button:disabled,
+.coach-task-row button:disabled,
 .mission-panel-header button:disabled {
   cursor: not-allowed;
   opacity: 0.62;
@@ -348,10 +354,150 @@
   font-size: 0.9rem;
 }
 
+.primary-mission-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--club-on-secondary) 16%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--club-on-secondary) 9%, transparent);
+}
+
+.primary-mission-strip div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.primary-mission-strip span,
+.coach-task-command-heading span,
+.coach-task-copy span {
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.primary-mission-strip span {
+  color: color-mix(in srgb, var(--club-primary) 76%, #ffffff 24%);
+}
+
+.primary-mission-strip strong {
+  overflow-wrap: anywhere;
+  color: var(--club-on-secondary);
+  font-size: 1.04rem;
+  line-height: 1.18;
+}
+
+.primary-mission-strip p {
+  max-width: 760px;
+  margin: 0;
+  color: color-mix(in srgb, var(--club-on-secondary) 76%, transparent);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.primary-mission-strip .focus-button {
+  margin-top: 0;
+}
+
 .mission-status-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+}
+
+.coach-task-command {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.coach-task-command-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.coach-task-command-heading h3 {
+  margin: 0;
+  color: var(--club-text);
+  font-size: 1.05rem;
+  line-height: 1.1;
+}
+
+.coach-task-command-heading span {
+  color: var(--club-muted);
+}
+
+.coach-task-list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.coach-task-row {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-width: 0;
+  min-height: 176px;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--club-primary) 20%, var(--club-border));
+  border-radius: 8px;
+  background: linear-gradient(180deg, #ffffff 0%, var(--club-surface-soft) 100%);
+}
+
+.coach-task-row.disabled {
+  opacity: 0.72;
+}
+
+.coach-task-index {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--club-primary-soft);
+  color: var(--club-primary-dark);
+  font-size: 0.72rem;
+  font-weight: 950;
+}
+
+.coach-task-copy {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  gap: 5px;
+}
+
+.coach-task-copy span {
+  color: var(--club-primary-dark);
+}
+
+.coach-task-copy strong {
+  overflow-wrap: anywhere;
+  color: var(--club-text);
+  font-size: 0.92rem;
+  line-height: 1.18;
+}
+
+.coach-task-copy p {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--club-muted);
+  font-size: 0.78rem;
+  line-height: 1.42;
+}
+
+.coach-task-row button {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 0.78rem;
 }
 
 .mission-status-card {
@@ -799,6 +945,10 @@
     grid-template-columns: minmax(320px, 1.1fr) minmax(280px, 0.9fr) minmax(260px, 0.8fr);
   }
 
+  .coach-task-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .focus-facts {
     grid-template-columns: 1fr;
   }
@@ -819,6 +969,10 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .coach-task-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .focus-columns {
     grid-template-columns: 1fr;
   }
@@ -836,6 +990,8 @@
 
   .mission-header,
   .today-focus-heading,
+  .primary-mission-strip,
+  .coach-task-command-heading,
   .session-readiness-top {
     align-items: stretch;
     flex-direction: column;
@@ -848,6 +1004,7 @@
   .mission-work-grid,
   .mission-support-grid,
   .mission-status-grid,
+  .coach-task-list,
   .readiness-checklist {
     grid-template-columns: 1fr;
   }
@@ -877,6 +1034,7 @@
   .mission-action,
   .mission-icon-action,
   .focus-button,
+  .coach-task-row button,
   .mission-panel-header button,
   .mission-empty-state button {
     width: 100%;
