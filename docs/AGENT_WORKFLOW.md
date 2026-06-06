@@ -11,6 +11,7 @@ Ask Codex to use:
 - `AGENTS.md`
 - `AGENT_BRIEF.md`
 - the relevant module skill
+- `docs/PRODUCT_MASTER_PLAN.md` for major product direction, roadmap, feature planning, or redesign decisions
 
 Do not let Codex use old local directories. If there is doubt, ask it to clone or fetch fresh from GitHub before planning.
 
@@ -34,6 +35,18 @@ Plan Mode should answer:
 - testing checklist
 - branch name
 - PR delivery plan
+
+## When To Use PRODUCT_MASTER_PLAN.md
+
+Read `docs/PRODUCT_MASTER_PLAN.md` before:
+
+- major UI redesigns
+- module redesigns
+- roadmap planning
+- new feature planning
+- product direction review
+
+Use it with `DESIGN_SYSTEM.md`, `PROJECT_CONTEXT.md`, and the relevant module skill so implementation stays aligned with the long-term Coach HQ vision.
 
 ## When To Use Each Skill
 

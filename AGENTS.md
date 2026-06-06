@@ -22,12 +22,13 @@ Before planning or implementation, read:
 6. `DESIGN_SYSTEM.md`
 7. `DEVELOPMENT_LOG.md`
 8. `AGENT_BRIEF.md`
-9. `docs/MODULE_GUIDE.md`
-10. `docs/DATA_AND_STORAGE.md`
-11. `docs/UI_DESIGN_GUIDE.md`
-12. `docs/CODEX_WORKFLOW.md` if it exists
-13. `docs/AGENT_WORKFLOW.md` if it exists
-14. `docs/PR_DELIVERY_STANDARD.md` if it exists
+9. `docs/PRODUCT_MASTER_PLAN.md` for major product direction, module redesign, UI/UX redesign, roadmap planning, or feature prioritisation
+10. `docs/MODULE_GUIDE.md`
+11. `docs/DATA_AND_STORAGE.md`
+12. `docs/UI_DESIGN_GUIDE.md`
+13. `docs/CODEX_WORKFLOW.md` if it exists
+14. `docs/AGENT_WORKFLOW.md` if it exists
+15. `docs/PR_DELIVERY_STANDARD.md` if it exists
 
 For module work, also inspect the current module source files on latest remote `main`.
 
@@ -66,6 +67,7 @@ Protect real browser-saved coaching data.
 - Use existing project patterns before introducing new abstractions.
 - Do not redesign unrelated modules during a focused task.
 - Use Plan Mode first for major UI, data, workflow, or architecture work.
+- For major product direction, module redesign, UI/UX redesign, roadmap planning, or feature prioritisation, read `docs/PRODUCT_MASTER_PLAN.md` first.
 - For documentation-only work, do not touch `src/`, CSS, Vite config, or localStorage logic.
 
 ## Delivery Rules
