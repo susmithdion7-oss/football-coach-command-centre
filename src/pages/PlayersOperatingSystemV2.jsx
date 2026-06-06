@@ -537,6 +537,56 @@ function getFocusAreas(players) {
     .slice(0, 4)
 }
 
+function getPlayerCommandSteps(player = {}) {
+  const notes = getPlayerNotes(player)
+  const trainingFeedback = getLatestNoteByType(player, 'Training')
+  const matchFeedback = getLatestNoteByType(player, 'Match')
+  const completeness = getProfileCompleteness(player)
+  const hasDevelopmentFocus = Boolean(player.developmentFocus)
+  const hasPosition = Boolean(player.mainPosition)
+  const hasFeedbackLoop = Boolean(trainingFeedback || matchFeedback || notes.length > 0)
+
+  return [
+    {
+      id: 'profile-context',
+      action: 'Edit Details',
+      actionType: 'edit',
+      detail: completeness >= 70 ? 'Enough context for planning decisions.' : 'Add age, position, foot, strengths and gaps.',
+      label: 'Profile Context',
+      state: completeness >= 70 ? 'ready' : 'needs-work',
+      value: `${completeness}% complete`,
+    },
+    {
+      id: 'development-focus',
+      action: hasDevelopmentFocus ? 'Review Focus' : 'Set Focus',
+      actionType: 'focus',
+      detail: hasDevelopmentFocus ? 'Use this focus to shape training work.' : 'Set the next growth target for this player.',
+      label: 'Development Focus',
+      state: hasDevelopmentFocus ? 'ready' : 'needs-work',
+      value: hasDevelopmentFocus ? player.developmentFocus : 'Focus missing',
+    },
+    {
+      id: 'feedback-loop',
+      action: trainingFeedback ? 'Add Note' : 'Log Training',
+      actionType: 'note',
+      detail: hasFeedbackLoop ? 'Feedback history is active.' : 'Capture training or match feedback after the next session.',
+      label: 'Feedback Loop',
+      noteType: trainingFeedback ? 'General' : 'Training',
+      state: hasFeedbackLoop ? 'ready' : 'needs-work',
+      value: notes.length > 0 ? `${notes.length} note${notes.length === 1 ? '' : 's'}` : 'No notes yet',
+    },
+    {
+      id: 'squad-role',
+      action: 'Open Squad',
+      actionType: 'squad',
+      detail: hasPosition ? 'Connect this player to lineup, tactics and assignments.' : 'Set a position before lineup decisions.',
+      label: 'Squad Role',
+      state: hasPosition ? 'ready' : 'needs-work',
+      value: hasPosition ? player.mainPosition : 'Position missing',
+    },
+  ]
+}
+
 function processAvatarFile(file) {
   return new Promise((resolve, reject) => {
     if (!file) {
@@ -1135,8 +1185,14 @@ function PlayersOperatingSystemV2({ players = [], onAddPlayer, onDeletePlayer, o
           onClearFilters={clearFilters}
           onEditPlayer={startEditingPlayer}
           onImportSquad={() => openImportModal('import')}
+          onOpenFocus={openDevelopmentFocus}
           onOpenNote={openNoteForPlayer}
           onOpenProfile={setProfilePlayerId}
+          onOpenSquadManagement={(playerId) => {
+            setSelectedLineupPlayerId(playerId)
+            setActiveSection('squadManagement')
+            setActiveSquadTab('lineup')
+          }}
           onPastePlayers={() => openImportModal('paste')}
           onPositionFilter={setPositionFilter}
           onSearch={setSearchTerm}
@@ -1281,7 +1337,7 @@ function Toast({ message }) {
   return <div className={message ? 'players-os-toast show' : 'players-os-toast'}>{message}</div>
 }
 
-function PlayerCentre({ filteredPlayers, onActionMenu, onAddPlayer, onClearFilters, onEditPlayer, onImportSquad, onOpenNote, onOpenProfile, onPastePlayers, onPositionFilter, onSearch, onSelectPlayer, onStatusFilter, players, positionFilter, positionOptions, searchTerm, selectedPlayer, selectedPlayerId, statusFilter }) {
+function PlayerCentre({ filteredPlayers, onActionMenu, onAddPlayer, onClearFilters, onEditPlayer, onImportSquad, onOpenFocus, onOpenNote, onOpenProfile, onOpenSquadManagement, onPastePlayers, onPositionFilter, onSearch, onSelectPlayer, onStatusFilter, players, positionFilter, positionOptions, searchTerm, selectedPlayer, selectedPlayerId, statusFilter }) {
   if (players.length === 0) {
     return (
       <EmptySquadExperience
@@ -1353,7 +1409,9 @@ function PlayerCentre({ filteredPlayers, onActionMenu, onAddPlayer, onClearFilte
       <SelectedPlayerPanel
         onAddNote={(type = 'General') => selectedPlayer && onOpenNote(selectedPlayer.id || selectedPlayerId, type)}
         onEdit={() => selectedPlayer && onEditPlayer(selectedPlayer.id || selectedPlayerId)}
+        onOpenFocus={() => selectedPlayer && onOpenFocus(selectedPlayer.id || selectedPlayerId)}
         onOpenProfile={() => selectedPlayer && onOpenProfile(selectedPlayer.id || selectedPlayerId)}
+        onOpenSquadManagement={() => selectedPlayer && onOpenSquadManagement(selectedPlayer.id || selectedPlayerId)}
         player={selectedPlayer}
       />
     </div>
@@ -1433,7 +1491,7 @@ function PlayerRow({ onActionMenu, onSelectPlayer, player, playerId, selected })
   )
 }
 
-function SelectedPlayerPanel({ onAddNote, onEdit, onOpenProfile, player }) {
+function SelectedPlayerPanel({ onAddNote, onEdit, onOpenFocus, onOpenProfile, onOpenSquadManagement, player }) {
   if (!player) {
     return (
       <section className="selected-player-panel dark-panel profile-command-panel empty-profile-panel">
@@ -1453,6 +1511,28 @@ function SelectedPlayerPanel({ onAddNote, onEdit, onOpenProfile, player }) {
   const averageRating = getAverageRating(player)
   const morale = getMorale(player)
   const status = getPlayerStatus(player)
+  const commandSteps = getPlayerCommandSteps(player)
+
+  function runCommandStep(step) {
+    if (step.actionType === 'edit') {
+      onEdit()
+      return
+    }
+
+    if (step.actionType === 'focus') {
+      onOpenFocus()
+      return
+    }
+
+    if (step.actionType === 'note') {
+      onAddNote(step.noteType || 'General')
+      return
+    }
+
+    if (step.actionType === 'squad') {
+      onOpenSquadManagement()
+    }
+  }
 
   return (
     <section className="selected-player-panel dark-panel profile-command-panel">
@@ -1476,6 +1556,20 @@ function SelectedPlayerPanel({ onAddNote, onEdit, onOpenProfile, player }) {
         <StatusMetric label="Morale" value={morale} tone={morale === 'Needs Support' ? 'warning' : 'success'} />
         <StatusMetric label="Training Status" value={status} tone="accent" />
         <StatusMetric label="Development Focus" value={player.developmentFocus || 'No development focus'} tone="accent" />
+      </div>
+
+      <div className="player-command-flow" aria-label="Player development command flow">
+        {commandSteps.map((step, index) => (
+          <article className={`player-command-step ${step.state}`} key={step.id}>
+            <span className="player-command-index">{String(index + 1).padStart(2, '0')}</span>
+            <div>
+              <span>{step.label}</span>
+              <strong>{step.value}</strong>
+              <p>{step.detail}</p>
+            </div>
+            <button type="button" onClick={() => runCommandStep(step)}>{step.action}</button>
+          </article>
+        ))}
       </div>
 
       <div className="profile-action-row profile-action-row-rich">

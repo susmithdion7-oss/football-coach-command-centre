@@ -4,6 +4,43 @@ This file records important product and engineering work for Coach Command Centr
 
 Future Codex sessions should read this log before development, then add a short entry after meaningful changes.
 
+## 2026-06-07 - Players Development Command Flow
+
+Date: 2026-06-07
+
+Task: Make Players feel more like a Player Operating System by adding a selected-player command flow.
+
+Scope: Players UI and interaction logic only. No backend, database, login, AI/API, payment, chat, localStorage key changes, Dashboard, Session Planner, Tactical Board, Onboarding, or Team Setup changes.
+
+Files changed:
+
+- `src/pages/PlayersOperatingSystemV2.jsx`
+- `src/playersOperatingSystemPolish.css`
+- `DEVELOPMENT_LOG.md`
+
+What changed:
+
+- Added a rule-based Player Command Flow to the selected player panel.
+- The flow now checks profile completeness, development focus, feedback history, and squad role context.
+- Added direct actions from the flow into existing edit, development focus, note, and Squad Management workflows.
+- Kept all player records, lineup storage, tactic storage, assignments storage, notes, avatars, and existing action menus compatible.
+
+Testing:
+
+- Confirmed work started from latest remote `main`.
+- Ran `npm.cmd install --package-lock=false` for local dependency setup without adding a package lock.
+- Ran `npm.cmd run build`; Vite production build passed.
+- Confirmed no localStorage keys or storage utility files were changed.
+
+Known issues:
+
+- This PR does not add deeper Development Plans yet.
+- This PR does not add complex drag/drop or new squad data models.
+
+Next step:
+
+- Connect Session Planner creation to existing squad needs so player focus can influence training design.
+
 ## 2026-06-07 - Dashboard Operating Loop
 
 Date: 2026-06-07
