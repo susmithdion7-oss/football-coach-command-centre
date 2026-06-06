@@ -4,6 +4,8 @@
 
 Coach Command Centre / 教练罗盘
 
+For the full product blueprint, read `docs/PRODUCT_MASTER_PLAN.md`.
+
 ## Positioning
 
 Coach Command Centre is a coach-first football coaching operating system. It helps coaches manage team identity, players, sessions, tactical diagrams, and the weekly coaching loop from one local-first workspace.

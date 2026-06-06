@@ -19,11 +19,12 @@ Use this skill when the user asks to plan work, shape a feature, split a large g
 ## Workflow
 
 1. Read `AGENTS.md`, `AGENT_BRIEF.md`, `PROJECT_CONTEXT.md`, `ROADMAP.md`, `CODEX_RULES.md`, and relevant docs.
-2. Restate the goal in product language.
-3. Identify what is already implemented and what should be protected.
-4. Split the goal into small PR-sized tasks.
-5. For each task, define scope, files likely touched, acceptance criteria, testing, and explicit non-goals.
-6. Recommend the first safest PR.
+2. Read `docs/PRODUCT_MASTER_PLAN.md` when planning sprints, proposing roadmap items, or deciding next best tasks.
+3. Restate the goal in product language.
+4. Identify what is already implemented and what should be protected.
+5. Split the goal into small PR-sized tasks.
+6. For each task, define scope, files likely touched, acceptance criteria, testing, and explicit non-goals.
+7. Recommend the first safest PR.
 
 ## Definition Of Done
 
