@@ -249,36 +249,97 @@ function getCoachTasks({ attentionPlayers, players, tacticalBoards, upcomingSess
   const draftSessions = upcomingSessions.filter((session) => getDisplayStatus(session.status) === 'Draft')
 
   if (players.length === 0) {
-    tasks.push({ label: 'Add your first player', target: 'players' })
+    tasks.push({
+      id: 'add-first-player',
+      action: 'Build Squad',
+      label: 'Add your first player',
+      priority: 'Start',
+      reason: 'Build your squad before planning lineups, player focus, or session priorities.',
+      target: 'players',
+    })
   }
 
   if (playersMissingPosition > 0) {
-    tasks.push({ label: 'Complete player positions', target: 'players' })
+    tasks.push({
+      id: 'complete-player-positions',
+      action: 'Review Squad',
+      label: 'Complete player positions',
+      priority: 'Squad',
+      reason: `${playersMissingPosition} player${playersMissingPosition === 1 ? '' : 's'} need positions before lineup and session context are reliable.`,
+      target: 'players',
+    })
   }
 
   if (playersMissingFocus > 0) {
-    tasks.push({ label: 'Set development focus', target: 'players' })
+    tasks.push({
+      id: 'set-development-focus',
+      action: 'Set Focus',
+      label: 'Set development focus',
+      priority: 'Players',
+      reason: `${playersMissingFocus} player${playersMissingFocus === 1 ? '' : 's'} need a development focus to power better session planning.`,
+      target: 'players',
+    })
   }
 
   if (upcomingSessions.length === 0) {
-    tasks.push({ label: 'Create your next session', target: 'sessions' })
+    tasks.push({
+      id: 'create-next-session',
+      action: 'Create Session',
+      label: 'Create your next session',
+      priority: 'Session',
+      reason: 'No upcoming session is planned yet. Create the next training block for this week.',
+      target: 'sessions',
+    })
   }
 
   if (draftSessions.length > 0) {
-    tasks.push({ label: 'Finish draft sessions', target: 'sessions' })
+    tasks.push({
+      id: 'finish-draft-sessions',
+      action: 'Finish Drafts',
+      label: 'Finish draft sessions',
+      priority: 'Session',
+      reason: `${draftSessions.length} draft session${draftSessions.length === 1 ? '' : 's'} still need final planning before delivery.`,
+      target: 'sessions',
+    })
   }
 
   if (tacticalBoards.length === 0) {
-    tasks.push({ label: 'Create your first tactical board', target: 'tactics' })
+    tasks.push({
+      id: 'create-first-board',
+      action: 'Open Board',
+      label: 'Create your first tactical board',
+      priority: 'Tactics',
+      reason: 'Start a tactical library for session diagrams, match ideas, and team talks.',
+      target: 'tactics',
+    })
   }
 
   if (attentionPlayers.some((player) => player.issues.includes('Needs support'))) {
-    tasks.push({ label: 'Review support players', target: 'players' })
+    tasks.push({
+      id: 'review-support-players',
+      action: 'Review Players',
+      label: 'Review support players',
+      priority: 'Care',
+      reason: 'At least one player is marked as needing support. Review notes before the next session.',
+      target: 'players',
+    })
   }
 
-  tasks.push({ label: 'Prepare your next match', target: 'matchCentre', disabled: true })
+  tasks.push({
+    id: 'prepare-next-match',
+    action: 'Future',
+    disabled: true,
+    label: 'Prepare your next match',
+    priority: 'Future',
+    reason: 'Match Centre is intentionally held as a future module until the match workflow is ready.',
+    target: 'matchCentre',
+  })
 
   return tasks
+}
+
+function getPrimaryCoachTask(coachTasks = []) {
+  return coachTasks.find((task) => !task.disabled) || coachTasks[0]
 }
 
 function isSessionThisWeek(session) {
@@ -398,6 +459,7 @@ function Dashboard({
   const latestBoard = getLatestBoard(tacticalBoards)
   const weekSessions = getWeekSessions(upcomingSessions)
   const coachTasks = getCoachTasks({ attentionPlayers, players, tacticalBoards, upcomingSessions })
+  const activeCoachTasks = coachTasks.filter((task) => !task.disabled)
   const draftUpcomingSessions = upcomingSessions.filter((session) => getDisplayStatus(session.status) === 'Draft')
   const readinessPercentage = nextSession ? getReadinessPercentage(nextSession) : 0
   const recentActivity = getRecentActivity({ players, recentPastSession, tacticalBoards, upcomingSessions })
@@ -420,7 +482,8 @@ function Dashboard({
       <TodayCoachFocus
         attentionPlayers={attentionPlayers}
         attentionSummary={attentionSummary}
-        coachName={coachName}
+        activeTaskCount={activeCoachTasks.length}
+        coachTasks={coachTasks}
         nextMatch={nextMatch}
         nextSession={nextSession}
         onNavigate={onNavigate}
@@ -449,13 +512,18 @@ function Dashboard({
           value={nextMatch.day}
         />
         <StatusCard
-          detail={coachTasks.slice(0, 2).map((task) => task.label).join(', ') || 'No open tasks'}
+          detail={activeCoachTasks.slice(0, 2).map((task) => task.label).join(', ') || 'No open tasks'}
           icon="CT"
           label="Coach Tasks"
           note={coachTasks.some((task) => task.disabled) ? 'Match prep is placeholder' : 'Ready for today'}
-          value={`${coachTasks.length} open`}
+          value={`${activeCoachTasks.length} active`}
         />
       </section>
+
+      <CoachTasksPanel
+        coachTasks={coachTasks}
+        onNavigate={onNavigate}
+      />
 
       <section className="mission-work-grid" aria-label="Main coaching work">
         <NextSessionReadiness
@@ -518,26 +586,47 @@ function MissionHeader({ coachName, onNavigate, seasonName, teamIdentity, teamNa
 }
 
 function TodayCoachFocus({
+  activeTaskCount,
   attentionPlayers,
   attentionSummary,
-  coachName,
+  coachTasks,
   nextMatch,
   nextSession,
   onNavigate,
 }) {
+  const primaryTask = getPrimaryCoachTask(coachTasks)
+
   return (
     <section className="today-focus-panel" aria-labelledby="today-focus-title">
       <div className="today-focus-heading">
         <div>
           <p className="mission-kicker">Today</p>
           <h2 id="today-focus-title">Today&apos;s Coach Focus</h2>
-          <span>Good to see you, {coachName}. Here&apos;s what needs your attention.</span>
+          <span>Your current workspace is turned into a clear coaching action plan.</span>
         </div>
         <div className="focus-task-count">
-          <strong>{attentionPlayers.length}</strong>
-          <span>player reviews</span>
+          <strong>{activeTaskCount}</strong>
+          <span>active tasks</span>
         </div>
       </div>
+
+      {primaryTask && (
+        <div className="primary-mission-strip">
+          <div>
+            <span>Next best action</span>
+            <strong>{primaryTask.label}</strong>
+            <p>{primaryTask.reason}</p>
+          </div>
+          <button
+            className={primaryTask.disabled ? 'focus-button disabled' : 'focus-button'}
+            disabled={primaryTask.disabled}
+            onClick={() => onNavigate(primaryTask.target)}
+            type="button"
+          >
+            {primaryTask.action}
+          </button>
+        </div>
+      )}
 
       <div className="focus-columns">
         <article className="focus-column">
@@ -591,6 +680,42 @@ function TodayCoachFocus({
           </button>
           <small>Match Centre is a safe placeholder for Phase 1.</small>
         </article>
+      </div>
+    </section>
+  )
+}
+
+function CoachTasksPanel({ coachTasks, onNavigate }) {
+  const visibleTasks = coachTasks.slice(0, 5)
+
+  return (
+    <section className="coach-task-command" aria-labelledby="coach-tasks-title">
+      <div className="coach-task-command-heading">
+        <div>
+          <p className="mission-kicker">Mission Queue</p>
+          <h3 id="coach-tasks-title">Coach Tasks</h3>
+        </div>
+        <span>{coachTasks.filter((task) => !task.disabled).length} active / {coachTasks.length} total</span>
+      </div>
+
+      <div className="coach-task-list">
+        {visibleTasks.map((task, index) => (
+          <article className={task.disabled ? 'coach-task-row disabled' : 'coach-task-row'} key={task.id || task.label}>
+            <div className="coach-task-index">{String(index + 1).padStart(2, '0')}</div>
+            <div className="coach-task-copy">
+              <span>{task.priority}</span>
+              <strong>{task.label}</strong>
+              <p>{task.reason}</p>
+            </div>
+            <button
+              disabled={task.disabled}
+              onClick={() => onNavigate(task.target)}
+              type="button"
+            >
+              {task.action}
+            </button>
+          </article>
+        ))}
       </div>
     </section>
   )

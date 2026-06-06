@@ -4,6 +4,45 @@ This file records important product and engineering work for Coach Command Centr
 
 Future Codex sessions should read this log before development, then add a short entry after meaningful changes.
 
+## 2026-06-07 - Dashboard Mission Queue
+
+Date: 2026-06-07
+
+Task: Rework Dashboard information architecture toward Coach Mission Control.
+
+Scope: Dashboard UI and information architecture only. No backend, database, login, AI/API, payment, chat, localStorage key changes, Players, Session Planner, Tactical Board, Onboarding, or Team Setup changes.
+
+Files changed:
+
+- `src/pages/Dashboard.jsx`
+- `src/dashboard.css`
+- `DEVELOPMENT_LOG.md`
+
+What changed:
+
+- Expanded generated coach tasks with priority labels, reasons, target actions, and disabled future-state handling.
+- Added a Today focus "Next best action" strip so the Dashboard points the coach to the most important next action.
+- Added a Mission Queue / Coach Tasks panel that turns squad, session, and tactical board state into an actionable coaching queue.
+- Updated Coach Tasks status card counts to separate active tasks from disabled future Match Centre preparation.
+- Added responsive styling for the new mission queue and primary action strip.
+
+Testing:
+
+- Confirmed work started from latest remote `main`.
+- Ran `npm.cmd install --package-lock=false` for local dependency setup without adding a package lock.
+- Ran `npm.cmd run build`; Vite production build passed.
+- Ran `git diff --check`; only existing Windows line-ending warnings were reported.
+- Confirmed no localStorage utility files or storage keys were changed.
+
+Known issues:
+
+- Match Centre remains a disabled future action.
+- This PR does not redesign Players, Session Planner, Tactical Board, or app shell navigation.
+
+Next step:
+
+- Review the Dashboard PR preview on desktop and mobile, then plan the next small Dashboard pass for richer weekly rhythm or session readiness detail.
+
 ## 2026-06-07 - Codex Agent Workflow System
 
 Date: 2026-06-07
