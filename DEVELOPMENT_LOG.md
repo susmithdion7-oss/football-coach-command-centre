@@ -4,6 +4,53 @@ This file records important product and engineering work for Coach Command Centr
 
 Future Codex sessions should read this log before development, then add a short entry after meaningful changes.
 
+## 2026-06-07 - Codex Agent Workflow System
+
+Date: 2026-06-07
+
+Task: Create a repo-scoped Codex agent workflow and skills system for safer future autonomous development.
+
+Scope: Documentation and repo-level skills only. No React components, CSS, app behavior, localStorage logic, backend, database, login, AI/API, payment, chat, or app rebuild changes.
+
+Files changed:
+
+- `AGENTS.md`
+- `AGENT_BRIEF.md`
+- `.agents/skills/coach-command-product-manager/SKILL.md`
+- `.agents/skills/coach-command-ui-polish/SKILL.md`
+- `.agents/skills/coach-command-dashboard/SKILL.md`
+- `.agents/skills/coach-command-players/SKILL.md`
+- `.agents/skills/coach-command-session-studio/SKILL.md`
+- `.agents/skills/coach-command-tactical-board/SKILL.md`
+- `.agents/skills/coach-command-qa-review/SKILL.md`
+- `docs/AGENT_WORKFLOW.md`
+- `docs/PR_DELIVERY_STANDARD.md`
+- `DEVELOPMENT_LOG.md`
+
+What changed:
+
+- Added repository-level agent rules for latest remote `main`, old-directory prevention, localStorage protection, delivery discipline, and beginner-friendly Chinese summaries.
+- Added a product-focused agent brief for Coach Command Centre / 教练罗盘.
+- Added reusable repo skills for product planning, UI polish, Dashboard, Players, Session Studio, Tactical Board, and QA review.
+- Added a user-facing agent workflow guide and PR delivery standard.
+
+Testing:
+
+- Documentation-only change.
+- Confirmed work started from latest remote `main`.
+- No `src/` files were modified.
+- No CSS files were modified.
+- No Vite config was modified.
+- No localStorage logic was modified.
+
+Known issues:
+
+- No app build was required because this task did not change app source code.
+
+Next step:
+
+- Use `coach-command-product-manager` to plan the first small PR for Dashboard Coach Mission Control.
+
 ## 2026-06-04 - Players Phase 1 Shell Theme And Empty Squad
 
 Date: 2026-06-04
