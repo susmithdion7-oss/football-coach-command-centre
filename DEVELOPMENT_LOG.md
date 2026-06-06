@@ -4,43 +4,42 @@ This file records important product and engineering work for Coach Command Centr
 
 Future Codex sessions should read this log before development, then add a short entry after meaningful changes.
 
-## 2026-06-07 - Session Squad Needs Entry
+## 2026-06-07 - Dashboard Operating Loop
 
 Date: 2026-06-07
 
-Task: Connect Session Planner creation to existing player development focus so training design starts from squad needs.
+Task: Move the Dashboard further toward Coach Mission Control with a connected operating loop.
 
-Scope: Session Planner UI and rule-based starter logic only. No backend, database, login, AI/API, payment, chat, localStorage key changes, Dashboard, Players, Tactical Board, Onboarding, or Team Setup changes.
+Scope: Dashboard information architecture and styling only. No backend, database, login, AI/API, payment, chat, localStorage key changes, Players, Session Planner, Tactical Board, Onboarding, or Team Setup changes.
 
 Files changed:
 
-- `src/pages/SessionPlanner.jsx`
-- `src/sessionPlanner.css`
+- `src/pages/Dashboard.jsx`
+- `src/dashboard.css`
 - `DEVELOPMENT_LOG.md`
 
 What changed:
 
-- Made Quick Start routes open the create workflow with the selected route.
-- Expanded Build from Squad Needs into a rule-based starter that reads existing player development focus.
-- Prefilled squad-needs sessions with player count, suggested topic, topic tags, and activity names from the top squad focus.
-- Added route preview logic to the Create Session modal so coaches can see why a route was suggested.
-- Added a Squad Needs side panel in the Session Workspace to show top player focus, missing focus, missing positions, and the suggested session topic.
+- Added a Coach Operating Loop that connects squad signals, session readiness, tactical support, and season direction into one visible workflow.
+- Replaced the separate status-card feel with a connected system signal rail.
+- Added action buttons in each operating-loop step so the Dashboard routes coaches to the next relevant workspace.
+- Preserved the existing Mission Queue and Today focus behavior while making the module relationships clearer.
 
 Testing:
 
 - Confirmed work started from latest remote `main`.
 - Ran `npm.cmd install --package-lock=false` for local dependency setup without adding a package lock.
 - Ran `npm.cmd run build`; Vite production build passed.
-- Confirmed `footballCoachSessions` and `sessionDraft` keys were not renamed or cleared.
+- Confirmed no localStorage utility files or storage keys were changed.
 
 Known issues:
 
-- This PR uses deterministic local rules only. It does not add AI or API calls.
-- It does not add PDF export, Match Centre, or deeper post-session feedback loops.
+- Match Centre remains a disabled future action.
+- This PR does not redesign Players, Session Planner, Tactical Board, or app shell navigation.
 
 Next step:
 
-- Review the create workflow preview, then continue with a focused Session Workspace activity timeline and diagram-panel polish pass.
+- Review the Dashboard preview, then continue with Players as a Player Operating System.
 
 ## 2026-06-07 - Dashboard Mission Queue
 
