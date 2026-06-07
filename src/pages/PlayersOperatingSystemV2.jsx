@@ -1432,7 +1432,7 @@ function EmptySquadExperience({ onAddPlayer, onImportSquad, onPastePlayers }) {
     <section className="players-empty-squad-shell">
       <div className="players-empty-squad-card dark-panel">
         <div className="empty-squad-copy">
-          <span className="players-os-kicker">Player Centre</span>
+          <span className="players-os-kicker">Squad Setup Command</span>
           <div className="empty-state-icon" aria-hidden="true">PL</div>
           <h4>Build your squad</h4>
           <p>Import your squad list or add players manually. You can complete player details later.</p>
@@ -1445,7 +1445,7 @@ function EmptySquadExperience({ onAddPlayer, onImportSquad, onPastePlayers }) {
         </div>
 
         <aside className="empty-tracking-card">
-          <span className="players-os-kicker">What you can track</span>
+          <span className="players-os-kicker">Player Data Map</span>
           <div className="tracking-list">
             {trackingItems.map((item) => (
               <div key={item}>
@@ -1454,7 +1454,7 @@ function EmptySquadExperience({ onAddPlayer, onImportSquad, onPastePlayers }) {
               </div>
             ))}
           </div>
-          <p className="empty-squad-note">Start light, then build a richer player profile as training and match feedback comes in.</p>
+          <p className="empty-squad-note">Start with names, then layer in roles, development focus and feedback as your season builds.</p>
         </aside>
       </div>
     </section>
