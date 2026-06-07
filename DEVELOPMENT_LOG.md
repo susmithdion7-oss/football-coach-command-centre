@@ -4,6 +4,43 @@ This file records important product and engineering work for Coach Command Centr
 
 Future Codex sessions should read this log before development, then add a short entry after meaningful changes.
 
+## 2026-06-07 - Players Visual System Reset
+
+Date: 2026-06-07
+
+Task: Reset the Players visual system so it feels more like a professional Player Operating System.
+
+Scope: Players UI and styling only. No backend, database, login, AI/API, payment, chat, localStorage key changes, player data schema changes, Dashboard, Session Planner, Tactical Board, Onboarding, or Team Setup changes.
+
+Files changed:
+
+- `src/pages/PlayersOperatingSystemV2.jsx`
+- `src/playersOperatingSystemPolish.css`
+- `DEVELOPMENT_LOG.md`
+
+What changed:
+
+- Rebuilt the Players colour rules around a neutral dark workspace instead of using the club colour as the whole page background.
+- Kept club colour as an accent for active states, focus rings, borders, player signals, and primary actions.
+- Improved contrast for bright club themes such as sky blue so primary and secondary buttons stay readable.
+- Reworked the empty squad state into a Squad Setup Command workspace with a tighter player data map instead of a large blank panel.
+- Reduced rounded, glowing card treatment across Player Centre surfaces, player rows, command flow, action menus, and empty-state panels.
+
+Testing:
+
+- Confirmed work started from latest remote `main`.
+- Confirmed the diff does not touch localStorage keys, storage utilities, player records, lineup storage, tactic storage, assignments storage, notes, or avatars.
+- Ran `npm.cmd run build`; Vite production build passed.
+
+Known issues:
+
+- This PR does not redesign Dashboard, Session Planner, Tactical Board, or the app shell.
+- This PR does not add deeper Development Plans or complex drag/drop.
+
+Next step:
+
+- Review the Players preview with bright sky blue, red/orange, and dark/navy club colours, then continue with the next Players interaction pass if needed.
+
 ## 2026-06-07 - Players Development Command Flow
 
 Date: 2026-06-07
